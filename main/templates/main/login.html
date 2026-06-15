@@ -1,0 +1,80 @@
+{% extends 'main/base.html' %}
+
+{% block nav %}{% endblock %}
+
+{% block title %}Login | IMS{% endblock %}
+
+{% block content %}
+<div class="login-page d-flex align-items-center justify-content-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+                <div class="card login-card shadow-sm">
+                    <div class="row g-0">
+                        <div class="col-md-5 login-aside p-4 p-md-5">
+                            <div class="mb-4">
+                                <div class="login-brand mb-3">
+                                    <span class="badge rounded-pill bg-white text-dark px-3 py-2">CHRIST</span>
+                                </div>
+                                <h2 class="h4 fw-semibold">University Login</h2>
+                                <p class="lead mb-0">Internship Management System</p>
+                            </div>
+                            <p class="small opacity-75">Access student internship records, applications, and placement workflows with secure university credentials.</p>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="text-center mb-4">
+                                    <p class="text-uppercase text-muted small mb-2">Welcome back</p>
+                                    <h3 class="h5 mb-0">Sign in to continue</h3>
+                                </div>
+
+                                {% if messages %}
+                                    <div class="mb-3">
+                                        {% for message in messages %}
+                                            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <form method="post" novalidate>
+                                    {% csrf_token %}
+                                    {% if form.non_field_errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            {{ form.non_field_errors.0 }}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        <label for="id_email" class="form-label">University Email</label>
+                                        <input type="text" name="email" id="id_email" class="form-control" placeholder="name@christuniversity.in" value="{{ form.email.value|default_if_none:'' }}" required aria-describedby="emailHelp">
+                                        <div id="emailHelp" class="form-text">Use your CHRIST University email address.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="id_password" class="form-label">Password</label>
+                                        <input type="password" name="password" id="id_password" class="form-control{% if form.password.errors %} is-invalid{% endif %}" placeholder="Enter your password" required>
+                                        {% if form.password.errors %}
+                                            <div class="invalid-feedback">{{ form.password.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="remember" id="id_remember" name="remember" {% if form.remember.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="id_remember">Remember Me</label>
+                                        </div>
+                                        <a href="#" class="small text-decoration-none">Forgot Password?</a>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                                    </div>
+                                </form>
+
+                                <p class="text-center text-muted small mt-4 mb-0">Mobile-friendly access for students, faculty, and internship coordinators.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

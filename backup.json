@@ -1,0 +1,9 @@
+[
+{
+  "model": "sessions.session",
+  "pk": "pwrluoyyeudewpod5737zuoh8smpj5so",
+  "fields": {
+    "session_data": ".eJxVjMEKwjAQRP8lZynZzaakPQp-R9h0ExLUKo0FRfx3U-hBjzPvzbyV5_WR_Vrj4ouoUYE6_HaBp3OcN3DlMnd7rN2pxctxh3-LzDU3fRLhJJFTdM4yEgEZBCSkANJDIuuCOGQtbKA3jDyYAdBYxxqbsp3WWGu5zT4-72V5qVF_voS2ORA:1wZ4uy:vNH_4zg0fxRBA2KKW6cq9L3Ni4oTYE4hcCwtZkhpETQ",
+    "expire_date": "2026-06-29T10:51:48.078Z"
+  }
+}

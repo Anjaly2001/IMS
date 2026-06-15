@@ -1,0 +1,24 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | IMS{% endblock %}
+
+{% block nav %}
+  {% include 'main/components/navbar.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  <div class="d-flex">
+    {% include 'main/components/sidebar.html' %}
+
+    <div class="flex-grow-1 p-4 dashboard-content">
+      {% block dashboard_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'main/css/dashboard.css' %}">
+{% endblock %}

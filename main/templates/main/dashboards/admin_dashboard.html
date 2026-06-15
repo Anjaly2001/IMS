@@ -1,0 +1,88 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h4 mb-0">Admin Dashboard</h1>
+        <small class="text-muted">Welcome, {{ request.user.get_full_name|default:request.user.email }}.</small>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-6 col-md-4">
+        <div class="card card-dashboard p-3 shadow-sm text-center">
+          <div class="card-body">
+            <h6 class="card-title">Total Students</h6>
+            <p class="h2 mb-0">{{ total_students }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4">
+        <div class="card card-dashboard p-3 shadow-sm text-center">
+          <div class="card-body">
+            <h6 class="card-title">Total Internships</h6>
+            <p class="h2 mb-0">{{ total_internships }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4">
+        <div class="card card-dashboard p-3 shadow-sm text-center">
+          <div class="card-body">
+            <h6 class="card-title">Pending Verifications</h6>
+            <p class="h2 mb-0">{{ pending_verifications }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4">
+        <div class="card card-dashboard p-3 shadow-sm text-center">
+          <div class="card-body">
+            <h6 class="card-title">Pending Marks</h6>
+            <p class="h2 mb-0">{{ pending_marks }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4">
+        <div class="card card-dashboard p-3 shadow-sm text-center">
+          <div class="card-body">
+            <h6 class="card-title">Organisations</h6>
+            <p class="h2 mb-0">{{ organisations }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4">
+        <div class="card card-dashboard p-3 shadow-sm text-center">
+          <div class="card-body">
+            <h6 class="card-title">Reports</h6>
+            <p class="h2 mb-0">{{ reports }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-4 g-4">
+      <div class="col-md-6">
+        <div class="card p-3 card-dashboard">
+          <div class="card-body">
+            <h5 class="card-title">Recent Activity</h5>
+            <p class="text-muted">Placeholder for recent logs and actions.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card p-3 card-dashboard">
+          <div class="card-body">
+            <h5 class="card-title">Quick Actions</h5>
+            <p class="text-muted">Placeholder for quick links and actions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,32 @@
+<aside class="sidebar bg-dark text-light d-flex flex-column p-3">
+  <div class="sidebar-brand mb-4">
+    <a href="/" class="d-flex align-items-center text-decoration-none text-light">
+      <span class="fs-5 fw-bold">IMS</span>
+    </a>
+  </div>
+
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="{% url 'core:admin_dashboard' %}" class="nav-link text-light">Dashboard</a>
+    </li>
+    <li>
+      <a href="#" class="nav-link text-light">Students</a>
+    </li>
+    <li>
+      <a href="#" class="nav-link text-light">Internships</a>
+    </li>
+    <li>
+      <a href="#" class="nav-link text-light">Organisations</a>
+    </li>
+    <li>
+      <a href="#" class="nav-link text-light">Reports</a>
+    </li>
+  </ul>
+
+  <hr class="text-secondary">
+
+  <div class="mt-auto">
+    <div class="small text-muted">Signed in as</div>
+    <div class="fw-semibold">{{ request.user.get_full_name|default:request.user.email }}</div>
+  </div>
+</aside>
