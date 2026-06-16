@@ -1,0 +1,73 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h1 class="h2 fw-bold mb-0 text-black" style="font-family: 'Playfair Display', serif;">Organisations</h1>
+            <p class="text-muted small mb-0">Partner law firms and organisations.</p>
+        </div>
+        <div>
+            <button class="btn btn-primary fw-bold text-white px-4 py-2 border-0 shadow-sm"
+                style="border-radius: 8px; font-size: 0.9rem; background-color: #2563eb;">
+                Register Organisation
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4 overflow-hidden">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 16px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-light rounded p-2 text-primary">
+                            <i class="bi bi-briefcase-fill fs-4"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0 text-dark">Khaitan & Co.</h6>
+                    </div>
+                    <p class="text-muted small mb-4">Location: Mumbai, Delhi, Pune</p>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span class="small text-muted">Active Interns</span>
+                        <span class="badge bg-primary rounded-pill">12</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 16px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-light rounded p-2 text-primary">
+                            <i class="bi bi-bank fs-4"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0 text-dark">District Court, Pune</h6>
+                    </div>
+                    <p class="text-muted small mb-4">Location: Shivajinagar, Pune</p>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span class="small text-muted">Active Interns</span>
+                        <span class="badge bg-primary rounded-pill">24</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 16px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-light rounded p-2 text-primary">
+                            <i class="bi bi-globe fs-4"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0 text-dark">Vidhi Centre for Legal Policy</h6>
+                    </div>
+                    <p class="text-muted small mb-4">Location: New Delhi</p>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span class="small text-muted">Active Interns</span>
+                        <span class="badge bg-primary rounded-pill">5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

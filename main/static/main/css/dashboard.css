@@ -1,23 +1,80 @@
-:root{
-  --bg:#0f0f0f;
-  --muted:#bba85e;
-  --panel:#111111;
-  --accent:#f7e079;
+:root {
+  --sidebar-bg: #0f172a; /* Professional Navy Blue */
+  --sidebar-text: #94a3b8;
+  --sidebar-active-bg: #1e293b;
+  --sidebar-active-text: #ffffff;
+  --content-bg: #ffffff;
+  --text-main: #000000;
+  --text-dark: #000000;
+  --text-muted: #64748b;
+  --accent-blue: #2563eb;
+  --card-bg: #ffffff;
+  --border-color: #f1f5f9;
 }
 
-.dashboard-wrapper{min-height:80vh;background:var(--bg);color:var(--muted)}
-
-.sidebar{width:220px;min-height:80vh;flex-shrink:0}
-.sidebar .nav-link{color:var(--muted);}
-.sidebar .nav-link.active{background:rgba(247,224,121,0.08);color:var(--accent)}
-
-.dashboard-content{background:transparent}
-
-.card-dashboard{background:var(--panel);border:none;color:var(--accent)}
-.card-dashboard .card-title{color:var(--muted)}
-
-@media (max-width: 767px){
-  .sidebar{position:fixed;left:-260px;top:0;bottom:0;z-index:1040;transition:left .25s}
-  .sidebar.open{left:0}
-  .dashboard-content{padding:1rem}
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--content-bg);
+  color: var(--text-dark);
 }
+
+
+.dashboard-container {
+  min-height: 100vh;
+}
+
+.sidebar {
+  background-color: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--border-color);
+  transition: all 0.3s;
+}
+
+.sidebar .nav-link {
+  color: var(--text-muted) !important;
+}
+
+.sidebar .nav-link:hover {
+  background-color: var(--sidebar-active-bg);
+  color: var(--accent-blue) !important;
+}
+
+.sidebar .nav-link.active {
+  background-color: var(--sidebar-active-bg) !important;
+  color: var(--accent-blue) !important;
+  font-weight: 600;
+}
+
+.main-content {
+  background-color: var(--content-bg);
+}
+
+.dashboard-content-area {
+  background-color: var(--content-bg);
+}
+
+
+.top-header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card {
+  background-color: #ffffff !important;
+  border: 1px solid #edf2f7 !important;
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+.text-black {
+  color: #000000 !important;
+}
+
+.text-blue {
+  color: #2563eb !important;
+}
+
+

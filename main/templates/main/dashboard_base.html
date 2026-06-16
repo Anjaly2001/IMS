@@ -3,16 +3,34 @@
 
 {% block title %}Dashboard | IMS{% endblock %}
 
-{% block nav %}
-  {% include 'main/components/navbar.html' %}
-{% endblock %}
+{% block nav %}{% endblock %}
 
 {% block content %}
-<div class="dashboard-wrapper">
-  <div class="d-flex">
-    {% include 'main/components/sidebar.html' %}
+<div class="dashboard-container d-flex">
+  {% include 'main/components/sidebar.html' %}
 
-    <div class="flex-grow-1 p-4 dashboard-content">
+  <div class="main-content flex-grow-1">
+    <!-- Top Header Bar -->
+    <div class="top-header d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
+      <div class="search-wrapper position-relative">
+        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        <input type="text" class="form-control ps-5 border-0 bg-light"
+          placeholder="Search students, organisations, register numbers..." style="width: 450px; border-radius: 8px;">
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <div class="notifications position-relative">
+          <i class="bi bi-bell-fill fs-5 text-muted"></i>
+          <span
+            class="position-absolute top-0 start-100 translate-middle p-1 bg-warning border border-light rounded-circle"></span>
+        </div>
+        <div class="batch-selector text-muted fw-medium d-flex align-items-center gap-2">
+          <i class="bi bi-calendar3"></i>
+          Batch 2021-2026
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-content-area p-4">
       {% block dashboard_content %}{% endblock %}
     </div>
   </div>
@@ -20,5 +38,29 @@
 {% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'main/css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'main/css/dashboard.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+  body {
+    background-color: #ffffff;
+  }
+
+
+  .main-content {
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .search-wrapper .form-control:focus {
+    box-shadow: none;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+  }
+</style>
 {% endblock %}

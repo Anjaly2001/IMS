@@ -1,88 +1,281 @@
 {% extends 'main/dashboard_base.html' %}
 
 {% block dashboard_content %}
-  <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h1 class="h4 mb-0">Admin Dashboard</h1>
-        <small class="text-muted">Welcome, {{ request.user.get_full_name|default:request.user.email }}.</small>
+<div class="container-fluid px-0">
+
+  <!-- Welcome area -->
+  <div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+      <div class="text-muted small mb-1 fw-bold">Welcome back, {{ request.user.get_full_name|default:"Dr. Ramanathan" }}
+      </div>
+      <h1 class="h2 fw-bold mb-0 text-black" style="font-family: 'Playfair Display', serif;">Department overview</h1>
+    </div>
+    <div>
+      <button class="btn btn-primary fw-bold text-white px-4 py-2 border-0 shadow-sm"
+        style="border-radius: 8px; font-size: 0.9rem; background-color: #2563eb;">
+        Enter today's marks
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card shadow-sm p-4 h-100" style="border-radius: 16px;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="text-muted small fw-medium">Active students</div>
+          <i class="bi bi-people text-primary"></i>
+        </div>
+        <h2 class="h1 fw-bold mb-1 text-black">248</h2>
+        <div class="text-muted small">+12 this term</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm p-4 h-100" style="border-radius: 16px;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="text-muted small fw-medium">Ongoing internships</div>
+          <i class="bi bi-briefcase text-primary"></i>
+        </div>
+        <h2 class="h1 fw-bold mb-1 text-black">186</h2>
+        <div class="text-muted small">32 pending review</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm p-4 h-100" style="border-radius: 16px;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="text-muted small fw-medium">Marks to enter</div>
+          <i class="bi bi-calendar-check text-primary"></i>
+        </div>
+        <h2 class="h1 fw-bold mb-1 text-black">47</h2>
+        <div class="text-muted small text-danger fw-medium">Due in 5 days</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm p-4 h-100" style="border-radius: 16px;">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="text-muted small fw-medium">Approvals waiting</div>
+          <i class="bi bi-clock-history text-primary"></i>
+        </div>
+        <h2 class="h1 fw-bold mb-1 text-black">9</h2>
+        <div class="text-muted small">HoD desk</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Pending Actions Table -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm p-4" style="border-radius: 16px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h5 class="fw-bold mb-1 text-black" style="font-family: 'Playfair Display', serif;">Pending your action</h5>
+            <p class="text-muted small mb-0">Records awaiting mentor or coordinator review.</p>
+          </div>
+          <a href="#" class="text-decoration-none small fw-bold text-primary">View all <i
+              class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-borderless align-middle mb-0">
+            <thead class="text-muted small fw-medium border-bottom">
+              <tr>
+                <th class="ps-0 pb-3">Student</th>
+                <th class="pb-3">Organisation</th>
+                <th class="pb-3">Internship</th>
+                <th class="pb-3 text-end">Status</th>
+              </tr>
+            </thead>
+            <tbody class="small">
+              <tr class="border-bottom-light">
+                <td class="ps-0 py-3">
+                  <div class="fw-bold text-black text-dark">Aarav Mehta</div>
+                  <div class="text-muted small">21BAL042</div>
+                </td>
+                <td class="text-muted">Khaitan & Co.</td>
+                <td class="fw-medium text-dark">Internship 3</td>
+                <td class="text-end"><span class="badge px-3 py-2 rounded-pill fw-medium"
+                    style="background-color: #fef3c7; color: #d97706;">Mentor review</span></td>
+              </tr>
+              <tr class="border-bottom-light">
+                <td class="ps-0 py-3">
+                  <div class="fw-bold text-black text-dark">Priya Iyer</div>
+                  <div class="text-muted small">21BAL017</div>
+                </td>
+                <td class="text-muted">District Court, Pune</td>
+                <td class="fw-medium text-dark">Internship 2</td>
+                <td class="text-end"><span class="badge px-3 py-2 rounded-pill fw-medium"
+                    style="background-color: #fef3c7; color: #d97706;">Marks pending</span></td>
+              </tr>
+              <tr class="border-bottom-light">
+                <td class="ps-0 py-3">
+                  <div class="fw-bold text-black text-dark">Rohan Das</div>
+                  <div class="text-muted small">21BAL103</div>
+                </td>
+                <td class="text-muted">NGO - Legal Aid</td>
+                <td class="fw-medium text-dark">Internship 4</td>
+                <td class="text-end"><span class="badge px-3 py-2 rounded-pill fw-medium"
+                    style="background-color: #eff6ff; color: #2563eb;">HoD approval</span></td>
+              </tr>
+              <tr class="border-bottom-light">
+                <td class="ps-0 py-3">
+                  <div class="fw-bold text-black text-dark">Sara Khan</div>
+                  <div class="text-muted small">21BAL056</div>
+                </td>
+                <td class="text-muted">High Court Chamber</td>
+                <td class="fw-medium text-dark">Internship 1</td>
+                <td class="text-end"><span class="badge px-3 py-2 rounded-pill fw-medium"
+                    style="background-color: #fce7f3; color: #be185d;">Document upload</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="row g-4">
-      <div class="col-6 col-md-4">
-        <div class="card card-dashboard p-3 shadow-sm text-center">
-          <div class="card-body">
-            <h6 class="card-title">Total Students</h6>
-            <p class="h2 mb-0">{{ total_students }}</p>
+    <!-- Performance Chart -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm p-4 h-100" style="border-radius: 16px;">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+          <div>
+            <h5 class="fw-bold mb-1 text-black" style="font-family: 'Playfair Display', serif;">Batch performance</h5>
+            <p class="text-muted small mb-0">Average viva score per internship cycle.</p>
+          </div>
+          <i class="bi bi-graph-up text-success"></i>
+        </div>
+
+        <div class="chart-container d-flex align-items-end justify-content-between mt-4 mb-5" style="height: 120px;">
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 60%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I1</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 75%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I2</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 45%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I3</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 80%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I4</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 65%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I5</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 70%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I6</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-light-blue rounded-top" style="height: 55%; width: 12px; background-color: #eff6ff;">
+            </div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I7</span>
+          </div>
+          <div class="bar-wrapper d-flex flex-column align-items-center gap-2">
+            <div class="bar bg-primary rounded-top" style="height: 90%; width: 12px; background-color: #2563eb;"></div>
+            <span class="text-muted small" style="font-size: 0.65rem;">I8</span>
           </div>
         </div>
-      </div>
 
-      <div class="col-6 col-md-4">
-        <div class="card card-dashboard p-3 shadow-sm text-center">
-          <div class="card-body">
-            <h6 class="card-title">Total Internships</h6>
-            <p class="h2 mb-0">{{ total_internships }}</p>
+        <div class="d-flex justify-content-between align-items-end mt-auto">
+          <div>
+            <div class="text-muted small mb-1">Batch average</div>
+            <h3 class="fw-bold mb-0 text-black">81.7</h3>
           </div>
-        </div>
-      </div>
-
-      <div class="col-6 col-md-4">
-        <div class="card card-dashboard p-3 shadow-sm text-center">
-          <div class="card-body">
-            <h6 class="card-title">Pending Verifications</h6>
-            <p class="h2 mb-0">{{ pending_verifications }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-6 col-md-4">
-        <div class="card card-dashboard p-3 shadow-sm text-center">
-          <div class="card-body">
-            <h6 class="card-title">Pending Marks</h6>
-            <p class="h2 mb-0">{{ pending_marks }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-6 col-md-4">
-        <div class="card card-dashboard p-3 shadow-sm text-center">
-          <div class="card-body">
-            <h6 class="card-title">Organisations</h6>
-            <p class="h2 mb-0">{{ organisations }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-6 col-md-4">
-        <div class="card card-dashboard p-3 shadow-sm text-center">
-          <div class="card-body">
-            <h6 class="card-title">Reports</h6>
-            <p class="h2 mb-0">{{ reports }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row mt-4 g-4">
-      <div class="col-md-6">
-        <div class="card p-3 card-dashboard">
-          <div class="card-body">
-            <h5 class="card-title">Recent Activity</h5>
-            <p class="text-muted">Placeholder for recent logs and actions.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card p-3 card-dashboard">
-          <div class="card-body">
-            <h5 class="card-title">Quick Actions</h5>
-            <p class="text-muted">Placeholder for quick links and actions.</p>
+          <div class="text-end">
+            <div class="text-muted small mb-1">YoY change</div>
+            <div class="text-success fw-bold">+3.4</div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+* {
+            box-sizing: border-box;
+        }
+
+
+        body {
+            margin: 0;
+            background-color: #f8fafc;
+            font-family: "Inter", sans-serif;
+        }
+
+
+        .dashboard-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+
+        /* MAIN CONTENT */
+        .dashboard-main {
+            flex: 1;
+            background: #f8fafc;
+        }
+
+
+        /* TOP BAR */
+        .topbar {
+            height: 60px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+
+        .search-box {
+            width: 380px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            outline: none;
+        }
+
+
+        .batch-info {
+            color: #334155;
+            font-weight: 600;
+        }
+
+
+        .batch-info i {
+            color: #fbbf24;
+            margin-right: 8px;
+        }
+
+
+        /* PAGE CONTENT */
+        .page-content {
+            padding: 24px;
+            background: #f8fafc;
+            min-height: calc(100vh - 60px);
+        }
+
+
+        /* GLOBAL CARD STYLE */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-radius: 16px;
+        }
+
+</style>
 {% endblock %}

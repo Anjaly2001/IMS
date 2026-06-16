@@ -1,12 +1,13 @@
 body {
-    background-color: #121212;
-    color: #f7e079;
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .navbar-brand {
     font-weight: 700;
-    color: #f7e079 !important;
+    color: #2563eb !important;
 }
+
 
 .card {
     border: none;

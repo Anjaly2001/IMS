@@ -1,32 +1,107 @@
-<aside class="sidebar bg-dark text-light d-flex flex-column p-3">
-  <div class="sidebar-brand mb-4">
-    <a href="/" class="d-flex align-items-center text-decoration-none text-light">
-      <span class="fs-5 fw-bold">IMS</span>
-    </a>
+<aside class="sidebar d-flex flex-column"
+  style="width: 260px; background-color: var(--sidebar-bg); height: 100vh; position: sticky; top: 0; border: none;">
+  <div class="sidebar-header p-4 d-flex align-items-center gap-2">
+    <div class="logo-box bg-primary rounded d-flex align-items-center justify-content-center"
+      style="width: 32px; height: 32px;">
+      <i class="bi bi-intersect text-white fw-bold"></i>
+    </div>
+    <span class="fs-5 fw-bold text-white mb-0" style="letter-spacing: 0.5px;">InternHub</span>
   </div>
 
-  <ul class="nav nav-pills flex-column mb-auto">
-    <li class="nav-item">
-      <a href="{% url 'core:admin_dashboard' %}" class="nav-link text-light">Dashboard</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Students</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Internships</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Organisations</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Reports</a>
-    </li>
-  </ul>
+  <div class="sidebar-menu flex-grow-1 px-3">
+    <ul class="nav flex-column gap-1">
+      <li class="nav-item">
+        <a href="{% url 'core:admin_dashboard' %}"
+          class="nav-link active d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-grid"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'students:list' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-people"></i>
+          <span>Students</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'internships:list' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-briefcase"></i>
+          <span>Internships</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-file-earmark-check"></i>
+          <span>Assessments</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'organisations:list' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-building"></i>
+          <span>Organisations</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'reports:list' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-file-bar-graph"></i>
+          <span>Reports</span>
+        </a>
+      </li>
+      <li class="nav-item mt-2">
+        <a href="{% url 'programmes:list' %}" class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded">
+          <i class="bi bi-gear"></i>
+          <span>Master settings</span>
+        </a>
+      </li>
 
-  <hr class="text-secondary">
+    </ul>
+  </div>
 
-  <div class="mt-auto">
-    <div class="small text-muted">Signed in as</div>
-    <div class="fw-semibold">{{ request.user.get_full_name|default:request.user.email }}</div>
+  <div class="sidebar-footer p-3" style="border-top: 1px solid rgba(255,255,255,0.05);">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <div
+          class="avatar bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+          style="width: 40px; height: 40px;">
+          {{ request.user.first_name|first|default:"A" }}{{ request.user.last_name|first|default:"D" }}
+        </div>
+        <div class="user-info overflow-hidden">
+          <div class="fw-bold text-white text-truncate" style="font-size: 0.9rem;">{{
+            request.user.get_full_name|default:"Dr. P. Ramanathan" }}</div>
+          <div class="text-secondary small text-truncate">Faculty Mentor</div>
+        </div>
+      </div>
+      <a href="{% url 'accounts:logout' %}" class="text-secondary hover-white">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
   </div>
 </aside>
+
+<style>
+  .sidebar-menu .nav-link {
+    color: var(--sidebar-text) !important;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .sidebar-menu .nav-link:hover {
+    color: #ffffff !important;
+    background-color: var(--sidebar-active-bg) !important;
+  }
+
+  .sidebar-menu .nav-link.active {
+    color: #ffffff !important;
+    background-color: var(--sidebar-active-bg) !important;
+    font-weight: 600;
+  }
+
+  .hover-white:hover {
+    color: #ffffff !important;
+  }
+
+  .bg-primary {
+    background-color: #2563eb !important;
+  }
+</style>

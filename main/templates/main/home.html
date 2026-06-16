@@ -3,38 +3,42 @@
 {% block title %}Home | IMS{% endblock %}
 
 {% block content %}
-<div class="text-center mt-5">
-    <h1 class="display-5">Welcome to IMS</h1>
-    <p class="lead">This is a basic Django setup with Bootstrap for the frontend.</p>
-    <a class="btn btn-primary btn-lg" href="#features">Learn More</a>
-</div>
-
-<section id="features" class="mt-5">
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Responsive UI</h5>
-                    <p class="card-text">Built with Bootstrap so your interface works well on desktop and mobile.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Django Backend</h5>
-                    <p class="card-text">A clean Django structure ready for models, views, and admin configuration.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Static Assets</h5>
-                    <p class="card-text">Use app-specific static files for custom CSS and any future JavaScript.</p>
-                </div>
-            </div>
-        </div>
+<div class="container py-5">
+    <div class="text-center mt-5">
+        <h1 class="display-5">Welcome to IMS</h1>
+        <p class="lead">This is a basic Django setup with Bootstrap for the frontend.</p>
+        <a class="btn btn-primary btn-lg" href="#features">Learn More</a>
     </div>
-</section>
+
+    <section id="features" class="mt-5">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Responsive UI</h5>
+                        <p class="card-text">Built with Bootstrap so your interface works well on desktop and mobile.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Django Backend</h5>
+                        <p class="card-text">A clean Django structure ready for models, views, and admin configuration.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Static Assets</h5>
+                        <p class="card-text">Use app-specific static files for custom CSS and any future JavaScript.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}

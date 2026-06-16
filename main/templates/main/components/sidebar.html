@@ -1,32 +1,198 @@
-<aside class="sidebar bg-dark text-light d-flex flex-column p-3">
-  <div class="sidebar-brand mb-4">
-    <a href="/" class="d-flex align-items-center text-decoration-none text-light">
-      <span class="fs-5 fw-bold">IMS</span>
-    </a>
+<aside class="sidebar d-flex flex-column">
+  <div class="sidebar-header p-4 d-flex align-items-center gap-3">
+    <div class="logo-box">
+      <i class="bi bi-intersect"></i>
+    </div>
+    <span class="fs-5 fw-bold text-white mb-0">InternHub</span>
   </div>
 
-  <ul class="nav nav-pills flex-column mb-auto">
-    <li class="nav-item">
-      <a href="{% url 'core:admin_dashboard' %}" class="nav-link text-light">Dashboard</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Students</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Internships</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Organisations</a>
-    </li>
-    <li>
-      <a href="#" class="nav-link text-light">Reports</a>
-    </li>
-  </ul>
+  <div class="sidebar-menu flex-grow-1 px-3">
+    <ul class="nav flex-column gap-2">
 
-  <hr class="text-secondary">
+      <li class="nav-item">
+        <a href="{% url 'core:admin_dashboard' %}"
+          class="nav-link active d-flex align-items-center gap-3">
+          <i class="bi bi-grid-fill"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
 
-  <div class="mt-auto">
-    <div class="small text-muted">Signed in as</div>
-    <div class="fw-semibold">{{ request.user.get_full_name|default:request.user.email }}</div>
+      <li class="nav-item">
+        <a href="{% url 'students:list' %}"
+          class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-people-fill"></i>
+          <span>Students</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="{% url 'internships:list' %}"
+          class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-briefcase-fill"></i>
+          <span>Internships</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}"
+          class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-clipboard-check-fill"></i>
+          <span>Assessments</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="{% url 'organisations:list' %}"
+          class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-building-fill"></i>
+          <span>Organisations</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a href="{% url 'reports:list' %}"
+          class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-bar-chart-fill"></i>
+          <span>Reports</span>
+        </a>
+      </li>
+
+      <li class="nav-item mt-2">
+        <a href="{% url 'programmes:list' %}"
+          class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-gear-fill"></i>
+          <span>Master Settings</span>
+        </a>
+      </li>
+
+    </ul>
+  </div>
+
+
+  <!-- Footer -->
+  <div class="sidebar-footer p-3">
+    <div class="d-flex align-items-center justify-content-between">
+
+      <div class="d-flex align-items-center gap-3">
+        <div class="avatar">
+          {{ request.user.first_name|first|default:"A" }}
+          {{ request.user.last_name|first|default:"D" }}
+        </div>
+
+        <div class="user-info overflow-hidden">
+          <div class="fw-bold text-white text-truncate">
+            {{ request.user.get_full_name|default:"Dr. P. Ramanathan" }}
+          </div>
+          <div class="small role-text">Faculty Mentor</div>
+        </div>
+      </div>
+
+      <a href="{% url 'accounts:logout' %}" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+
+    </div>
   </div>
 </aside>
+
+<style>
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    background: #0f172a; /* Dark blue */
+    color: #fff;
+}
+
+
+/* Logo */
+.logo-box {
+    width: 38px;
+    height: 38px;
+    background: #fbbf24; /* Yellow */
+    color: #0f172a;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+}
+
+
+/* Menu links */
+.sidebar-menu .nav-link {
+    color: #ffffff;
+    padding: 12px 15px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: 0.25s;
+}
+
+
+/* Icons */
+.sidebar-menu .nav-link i {
+    color: #fbbf24;
+    font-size: 1rem;
+    width: 20px;
+}
+
+
+/* Hover */
+.sidebar-menu .nav-link:hover {
+    background: #1e293b;
+    color: white;
+    transform: translateX(4px);
+}
+
+
+/* Active menu */
+.sidebar-menu .nav-link.active {
+    background: #2563eb;
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar-menu .nav-link.active i {
+    color: white;
+}
+
+
+/* Footer */
+.sidebar-footer {
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+
+/* User avatar */
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: #fbbf24;
+    color: #0f172a;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+}
+
+
+/* Role text */
+.role-text {
+    color: #94a3b8;
+}
+
+
+/* Logout */
+.logout-btn {
+    color: #94a3b8;
+    font-size: 18px;
+    transition: 0.2s;
+}
+
+.logout-btn:hover {
+    color: #fff;
+}
+</style>

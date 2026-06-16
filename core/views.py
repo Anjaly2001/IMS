@@ -42,6 +42,10 @@ def admin_dashboard(request):
         'reports': reports,
     }
     return render(request, 'core/dashboards/admin_dashboard.html', context)
+    return render(request, 'students/student_list.html')
+    return render(request, 'main/dashboard_base.html')
+    return render(request, 'main/components/sidebar.html')  
+    
 
 
 @login_required
