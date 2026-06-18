@@ -1,0 +1,166 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div>
+                <h1 class="title-display h2 mb-0">Roles & Permissions</h1>
+                <p class="text-secondary small mb-0">Define system access levels and functional permissions for
+                    different user categories.</p>
+            </div>
+            <button class="btn btn-primary fw-600 px-4 rounded-md"><i class="bi bi-plus-lg me-2"></i>Create New
+                Role</button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Role List & Quick Controls -->
+    <div class="col-12">
+        <div class="card p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table-ims align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Role Name</th>
+                            <th>Description</th>
+                            <th>Active Users</th>
+                            <th>Module Access</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-700">Super Admin</div>
+                                <div class="text-xs text-primary">System-wide Access</div>
+                            </td>
+                            <td class="text-sm">God-mode access to all settings, users, and audit logs.</td>
+                            <td>4</td>
+                            <td><span class="badge-ims badge-success">All Modules</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-gear"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-700">Faculty Mentor</div>
+                                <div class="text-xs text-secondary">Academic Supervision</div>
+                            </td>
+                            <td class="text-sm">Manage diaries, marks, and communication for assigned students.</td>
+                            <td>128</td>
+                            <td><span class="badge-ims badge-info">Students, Reports</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-700">Internal Evaluator</div>
+                                <div class="text-xs text-secondary">Assessment Focused</div>
+                            </td>
+                            <td class="text-sm">Access to Viva-Voce marking and assessment rubrics.</td>
+                            <td>42</td>
+                            <td><span class="badge-ims badge-info">Assessments</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-700">Department Coordinator</div>
+                                <div class="text-xs text-secondary">Departmental Ops</div>
+                            </td>
+                            <td class="text-sm">Manage batch reports and student-organisation allocations.</td>
+                            <td>8</td>
+                            <td><span class="badge-ims badge-info">Internships, Orgs</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-light border"><i class="bi bi-pencil"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permission Matrix (Selected Role) -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-700 mb-0">Permission Matrix: <span class="text-primary">Faculty Mentor</span></h5>
+                <button class="btn btn-sm btn-outline-primary fw-600 rounded-md">Save Changes</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle text-sm">
+                    <thead class="bg-light border-bottom">
+                        <tr>
+                            <th class="ps-3 py-2">Module / Capability</th>
+                            <th class="text-center py-2">View</th>
+                            <th class="text-center py-2">Create</th>
+                            <th class="text-center py-2">Edit</th>
+                            <th class="text-center py-2">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-bottom">
+                            <td class="ps-3 py-3 fw-600">Student Profile</td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="ps-3 py-3 fw-600">Internship Diary</td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="ps-3 py-3 fw-600">Assessment & Marks</td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="ps-3 py-3 fw-600">Organisations List</td>
+                            <td class="text-center"><input type="checkbox" checked></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                            <td class="text-center"><input type="checkbox" disabled></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Summary Card -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <h6 class="fw-700 mb-3">Security Guidelines</h6>
+            <div class="alert bg-primary-subtle text-primary border-0 rounded-md text-xs mb-4">
+                <i class="bi bi-shield-check me-2"></i>
+                Changing "Delete" permissions requires secondary HoD approval.
+            </div>
+
+            <p class="text-secondary text-sm">Faculty mentors are restricted to their **own assigned batches**. Enabling
+                "View All" in student profiles will expose the entire database.</p>
+
+            <hr>
+
+            <div class="d-flex align-items-center gap-3 mt-auto">
+                <div class="avatar-sm bg-warning rounded-circle d-flex align-items-center justify-content-center"
+                    style="width: 32px; height: 32px;">
+                    <i class="bi bi-info-circle text-white"></i>
+                </div>
+                <div class="text-xs text-muted">Last audited by System on June 12, 2026.</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

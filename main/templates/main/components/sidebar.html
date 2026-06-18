@@ -6,193 +6,206 @@
     <span class="fs-5 fw-bold text-white mb-0">InternHub</span>
   </div>
 
-  <div class="sidebar-menu flex-grow-1 px-3">
-    <ul class="nav flex-column gap-2">
+  <div class="sidebar-menu flex-grow-1 px-3" style="overflow-y: auto;">
+    <ul class="nav flex-column gap-1">
 
+      {% if request.user.role == 'admin' or request.user.is_superuser %}
+      <!-- ADMIN SIDEBAR -->
       <li class="nav-item">
         <a href="{% url 'core:admin_dashboard' %}"
-          class="nav-link active d-flex align-items-center gap-3">
-          <i class="bi bi-grid-fill"></i>
-          <span>Dashboard</span>
+          class="nav-link d-flex align-items-center gap-3 {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-fill"></i><span>Dashboard</span>
         </a>
       </li>
+
+      <li class="menu-label mt-3 mb-1 text-uppercase text-xs fw-700 text-secondary px-3">Masters</li>
+      <li class="nav-item"><a href="{% url 'programmes:list' %}"
+          class="nav-link d-flex align-items-center gap-3 text-sm ps-4"><i
+            class="bi bi-journal-bookmark"></i><span>Programme</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3 text-sm ps-4"><i
+            class="bi bi-collection"></i><span>Batch</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3 text-sm ps-4"><i
+            class="bi bi-diagram-3"></i><span>Department</span></a></li>
+
+      <li class="menu-label mt-3 mb-1 text-uppercase text-xs fw-700 text-secondary px-3">Management</li>
+      <li class="nav-item"><a href="{% url 'accounts:user_list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-person-badge"></i><span>Users</span></a></li>
+      <li class="nav-item"><a href="{% url 'students:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-people"></i><span>Students</span></a></li>
+      <li class="nav-item"><a href="{% url 'organisations:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-building"></i><span>Organizations</span></a></li>
+      <li class="nav-item"><a href="{% url 'internships:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-briefcase"></i><span>Internships</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-calendar-x"></i><span>Breaks</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-person-check"></i><span>Mentors</span></a></li>
+      <li class="nav-item"><a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-clipboard-check"></i><span>Assessments</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-file-earmark-text"></i><span>Documents</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-check2-square"></i><span>Approvals</span></a></li>
+      <li class="nav-item"><a href="{% url 'reports:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-bar-chart"></i><span>Reports</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-gear"></i><span>Settings</span></a></li>
+      <li class="nav-item"><a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-shield-shaded"></i><span>Audit Logs</span></a></li>
+
+      {% elif request.user.role == 'department_admin' %}
+      <!-- DEPARTMENT ADMIN SIDEBAR -->
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-grid-fill"></i><span>Dashboard</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'students:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-people"></i><span>Students</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'internships:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-briefcase"></i><span>Internships</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i class="bi bi-person-video2"></i><span>Faculty
+            Assignments</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-clipboard-check"></i><span>Assessments</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-check2-square"></i><span>Approvals</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'reports:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-bar-chart"></i><span>Reports</span></a>
+      </li>
+
+      {% elif request.user.role == 'evaluator' %}
+      <!-- EVALUATOR SIDEBAR -->
+      <li class="nav-item">
+        <a href="{% url 'core:evaluator_dashboard' %}"
+          class="nav-link d-flex align-items-center gap-3 {% if request.resolver_match.url_name == 'evaluator_dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-fill"></i><span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-pencil-square"></i><span>Marks Entry</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i class="bi bi-clock-history"></i><span>Assessment
+            History</span></a>
+      </li>
+
+      {% elif request.user.role == 'hod' %}
+      <!-- HOD SIDEBAR -->
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-grid-fill"></i><span>Dashboard</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'students:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-people"></i><span>Students</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-check2-square"></i><span>Approvals</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-clipboard-check"></i><span>Assessments</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'reports:list' %}" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-bar-chart"></i><span>Reports</span></a>
+      </li>
+
+      {% elif request.user.role == 'faculty_mentor' %}
+
+      <!-- FACULTY MENTOR SIDEBAR -->
+      <li class="nav-item">
+        <a href="{% url 'core:mentor_dashboard' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-grid-fill"></i><span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'students:list' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-people"></i><span>My Supervisees</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'reports:list' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-journal-check"></i><span>Diary Reviews</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-clipboard2-check"></i><span>Viva Marking</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-file-earmark-bar-graph"></i><span>My Reports</span>
+        </a>
+      </li>
+      {% elif request.user.role == 'student' %}
+      <!-- STUDENT SIDEBAR -->
+      <li class="nav-item">
+        <a href="{% url 'core:student_dashboard' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-grid-fill"></i><span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'internships:list' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-briefcase"></i><span>My Internships</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'reports:list' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-journal-text"></i><span>Weekly Diary</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assessments:list' %}" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-clipboard2-check"></i><span>Assessments</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link d-flex align-items-center gap-3">
+          <i class="bi bi-person-circle"></i><span>My Profile</span>
+        </a>
+      </li>
+
+      {% else %}
 
       <li class="nav-item">
-        <a href="{% url 'students:list' %}"
-          class="nav-link d-flex align-items-center gap-3">
-          <i class="bi bi-people-fill"></i>
-          <span>Students</span>
-        </a>
+        <a href="#" class="nav-link d-flex align-items-center gap-3"><i
+            class="bi bi-grid-fill"></i><span>Dashboard</span></a>
       </li>
+      {% endif %}
 
-      <li class="nav-item">
-        <a href="{% url 'internships:list' %}"
-          class="nav-link d-flex align-items-center gap-3">
-          <i class="bi bi-briefcase-fill"></i>
-          <span>Internships</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="{% url 'assessments:list' %}"
-          class="nav-link d-flex align-items-center gap-3">
-          <i class="bi bi-clipboard-check-fill"></i>
-          <span>Assessments</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="{% url 'organisations:list' %}"
-          class="nav-link d-flex align-items-center gap-3">
-          <i class="bi bi-building-fill"></i>
-          <span>Organisations</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a href="{% url 'reports:list' %}"
-          class="nav-link d-flex align-items-center gap-3">
-          <i class="bi bi-bar-chart-fill"></i>
-          <span>Reports</span>
-        </a>
-      </li>
-
-      <li class="nav-item mt-2">
-        <a href="{% url 'programmes:list' %}"
-          class="nav-link d-flex align-items-center gap-3">
-          <i class="bi bi-gear-fill"></i>
-          <span>Master Settings</span>
-        </a>
-      </li>
 
     </ul>
   </div>
 
-
   <!-- Footer -->
   <div class="sidebar-footer p-3">
     <div class="d-flex align-items-center justify-content-between">
-
       <div class="d-flex align-items-center gap-3">
         <div class="avatar">
-          {{ request.user.first_name|first|default:"A" }}
-          {{ request.user.last_name|first|default:"D" }}
+          {{ request.user.first_name|first|default:"U" }}{{ request.user.last_name|first|default:"" }}
         </div>
-
         <div class="user-info overflow-hidden">
-          <div class="fw-bold text-white text-truncate">
-            {{ request.user.get_full_name|default:"Dr. P. Ramanathan" }}
+          <div class="fw-bold text-white text-truncate">{{ request.user.get_full_name|default:request.user.email }}
           </div>
-          <div class="small role-text">Faculty Mentor</div>
+          <div class="small role-text">{{ request.user.get_role_display }}</div>
         </div>
       </div>
-
-      <a href="{% url 'accounts:logout' %}" class="logout-btn">
-        <i class="bi bi-box-arrow-right"></i>
-      </a>
-
+      <a href="{% url 'accounts:logout' %}" class="logout-btn"><i class="bi bi-box-arrow-right"></i></a>
     </div>
   </div>
 </aside>
-
-<style>
-.sidebar {
-    width: 260px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    background: #0f172a; /* Dark blue */
-    color: #fff;
-}
-
-
-/* Logo */
-.logo-box {
-    width: 38px;
-    height: 38px;
-    background: #fbbf24; /* Yellow */
-    color: #0f172a;
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-}
-
-
-/* Menu links */
-.sidebar-menu .nav-link {
-    color: #ffffff;
-    padding: 12px 15px;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: 0.25s;
-}
-
-
-/* Icons */
-.sidebar-menu .nav-link i {
-    color: #fbbf24;
-    font-size: 1rem;
-    width: 20px;
-}
-
-
-/* Hover */
-.sidebar-menu .nav-link:hover {
-    background: #1e293b;
-    color: white;
-    transform: translateX(4px);
-}
-
-
-/* Active menu */
-.sidebar-menu .nav-link.active {
-    background: #2563eb;
-    color: white;
-    font-weight: 600;
-}
-
-.sidebar-menu .nav-link.active i {
-    color: white;
-}
-
-
-/* Footer */
-.sidebar-footer {
-    border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-
-/* User avatar */
-.avatar {
-    width: 40px;
-    height: 40px;
-    background: #fbbf24;
-    color: #0f172a;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 700;
-}
-
-
-/* Role text */
-.role-text {
-    color: #94a3b8;
-}
-
-
-/* Logout */
-.logout-btn {
-    color: #94a3b8;
-    font-size: 18px;
-    transition: 0.2s;
-}
-
-.logout-btn:hover {
-    color: #fff;
-}
-</style>

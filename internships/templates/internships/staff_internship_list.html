@@ -1,0 +1,62 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div>
+                <h1 class="title-display h2 mb-0">Internship Management</h1>
+                <p class="text-secondary small mb-0">Global view and control of all student internships across the
+                    department.</p>
+            </div>
+            <button class="btn btn-primary fw-600 px-4 rounded-md"><i class="bi bi-download me-2"></i>Export master
+                list</button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table-ims align-middle">
+            <thead>
+                <tr>
+                    <th class="ps-4">Student</th>
+                    <th>Type</th>
+                    <th>Organisation</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in internships %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="fw-700">{{ item.student.user.get_full_name }}</div>
+                        <div class="text-xs text-muted">{{ item.student.register_number }}</div>
+                    </td>
+                    <td>{{ item.get_internship_type_display }}</td>
+                    <td>{{ item.organisation.name }}</td>
+                    <td class="text-xs text-muted">{{ item.start_date|date:"M d, Y" }} - {{ item.end_date|date:"M d, Y"
+                        }}</td>
+                    <td>
+                        <span
+                            class="badge-ims {% if item.status == 'completed' %}badge-success{% elif item.status == 'ongoing' %}badge-info{% else %}badge-warning{% endif %}">
+                            {{ item.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-end pe-4">
+                        <button class="btn btn-sm btn-light border px-2"><i class="bi bi-eye"></i></button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">No internship records found in the database.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

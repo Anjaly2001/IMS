@@ -1,0 +1,75 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div>
+                <h1 class="title-display h2 mb-0">My Internships</h1>
+                <p class="text-secondary small mb-0">Track and manage your professional training progress across all 9
+                    required cycles.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-primary-subtle border-0 py-3 px-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-700 text-primary mb-1">Degree Requirement Progress</h6>
+                    <p class="text-xs text-primary text-opacity-75 mb-0">You must complete 8 regular internships and 1
+                        assessment internship to graduate.</p>
+                </div>
+                <div class="text-end">
+                    <span class="h4 fw-bold text-primary mb-0">{% widthratio slots|length 9 100 %}%</span>
+                    <div class="progress mt-2" style="height: 6px; width: 200px;">
+                        <div class="progress-bar bg-primary" style="width: 22%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Internship Slots Grid -->
+<div class="row g-4">
+    {% for slot in slots %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 {% if slot.is_assessment %}border-primary border-dashed{% endif %}">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <span
+                    class="badge {% if slot.data %}bg-success-subtle text-success{% else %}bg-light text-muted{% endif %} rounded-pill px-3 py-1 text-xs fw-700">
+                    {% if slot.data %}{{ slot.data.get_status_display }}{% else %}Not Started{% endif %}
+                </span>
+                {% if slot.is_assessment %}
+                <i class="bi bi-star-fill text-primary" title="Mandatory Assessment Internship"></i>
+                {% endif %}
+            </div>
+
+            <h5 class="fw-700 mb-1">{{ slot.label }}</h5>
+
+            {% if slot.data %}
+            <div class="text-sm text-secondary mb-3">{{ slot.data.organisation.name }}</div>
+            <div class="d-flex gap-3 text-xs text-muted mb-4">
+                <span><i class="bi bi-calendar3 me-1"></i> {{ slot.data.start_date|date:"M Y" }}</span>
+                <span><i class="bi bi-clock me-1"></i> {{ slot.data.end_date|date:"M Y" }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="#" class="btn btn-sm btn-light border flex-grow-1">View Details</a>
+                <a href="#" class="btn btn-sm btn-outline-primary px-3"><i class="bi bi-journal-text"></i></a>
+            </div>
+            {% else %}
+            <p class="text-sm text-muted mb-4">No internship recorded for this slot yet. Please prepare your documents
+                for application.</p>
+            <button class="btn btn-sm btn-primary w-100 fw-600 rounded-md">
+                <i class="bi bi-plus-lg me-2"></i>Apply for Cycle
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

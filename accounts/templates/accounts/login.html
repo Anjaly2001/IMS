@@ -2,77 +2,227 @@
 
 {% block nav %}{% endblock %}
 
-{% block title %}Login | IMS{% endblock %}
+{% block title %}Faculty & Admin Login | IMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #2563eb;
+        --sidebar-bg: #0f172a;
+        --sidebar-accent: #fbbf24;
+    }
+
+    body {
+        background-color: #f8fafc;
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-container {
+        width: 100%;
+        max-width: 1000px;
+        padding: 24px;
+    }
+
+    .login-card {
+        background: #ffffff;
+        border-radius: 24px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        min-height: 600px;
+    }
+
+    .login-visual {
+        flex: 1;
+        background-color: var(--sidebar-bg);
+        color: #ffffff;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-visual::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.2) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .login-visual .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 1;
+    }
+
+    .logo-box {
+        width: 38px;
+        height: 38px;
+        background: var(--sidebar-accent);
+        color: var(--sidebar-bg);
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 18px;
+    }
+
+    .login-form-area {
+        width: 450px;
+        padding: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .form-control {
+        background-color: #f1f5f9;
+        border: 2px solid transparent;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        background-color: #ffffff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn-login {
+        background: var(--primary);
+        color: white;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        border: none;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        margin-bottom: 24px;
+        color: var(--sidebar-accent);
+    }
+
+    .visual-content h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        margin-bottom: 24px;
+        line-height: 1.2;
+    }
+
+    @media (max-width: 900px) {
+        .login-visual {
+            display: none;
+        }
+
+        .login-form-area {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="login-page d-flex align-items-center justify-content-center py-5">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-7 col-xl-6">
-                <div class="card login-card shadow-sm">
-                    <div class="row g-0">
-                        <div class="col-md-5 login-aside p-4 p-md-5">
-                            <div class="mb-4">
-                                <div class="login-brand mb-3">
-                                    <span class="badge rounded-pill bg-white text-dark px-3 py-2">CHRIST</span>
-                                </div>
-                                <h2 class="h4 fw-semibold">University Login</h2>
-                                <p class="lead mb-0">Internship Management System</p>
-                            </div>
-                            <p class="small opacity-75">Access student internship records, applications, and placement workflows with secure university credentials.</p>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="card-body p-4 p-md-5">
-                                <div class="text-center mb-4">
-                                    <p class="text-uppercase text-muted small mb-2">Welcome back</p>
-                                    <h3 class="h5 mb-0">Sign in to continue</h3>
-                                </div>
-
-                                {% if messages %}
-                                    <div class="mb-3">
-                                        {% for message in messages %}
-                                            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-
-                                <form method="post" novalidate>
-                                    {% csrf_token %}
-                                    {% if form.non_field_errors %}
-                                        <div class="alert alert-danger" role="alert">
-                                            {{ form.non_field_errors.0 }}
-                                        </div>
-                                    {% endif %}
-
-                                    <div class="mb-3">
-                                        <label for="id_email" class="form-label">University Email</label>
-                                        <input type="text" name="email" id="id_email" class="form-control" placeholder="name@christuniversity.in" value="{{ form.email.value|default_if_none:'' }}" required aria-describedby="emailHelp">
-                                        <div id="emailHelp" class="form-text">Use your CHRIST University email address.</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="id_password" class="form-label">Password</label>
-                                        <input type="password" name="password" id="id_password" class="form-control{% if form.password.errors %} is-invalid{% endif %}" placeholder="Enter your password" required>
-                                        {% if form.password.errors %}
-                                            <div class="invalid-feedback">{{ form.password.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="remember" id="id_remember" name="remember" {% if form.remember.value %}checked{% endif %}>
-                                            <label class="form-check-label" for="id_remember">Remember Me</label>
-                                        </div>
-                                        <a href="#" class="small text-decoration-none">Forgot Password?</a>
-                                    </div>
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary btn-lg">Login</button>
-                                    </div>
-                                </form>
-
-                                <p class="text-center text-muted small mt-4 mb-0">Mobile-friendly access for students, faculty, and internship coordinators.</p>
-                            </div>
-                        </div>
-                    </div>
+<div class="login-container">
+    <div class="login-card">
+        <!-- Visual Section (Sidebar-like) -->
+        <div class="login-visual">
+            <div class="brand">
+                <div class="logo-box">
+                    <i class="bi bi-intersect"></i>
                 </div>
+                <span class="fs-4 fw-bold">InternHub</span>
+            </div>
+
+            <div class="visual-content">
+                <div class="role-badge">FACULTY & ADMIN PORTAL</div>
+                <h2>Streamlining Internship Excellence.</h2>
+                <p class="text-white text-opacity-75 lead">Access student portfolios, verify internship diaries, and
+                    manage assessments through our secure centralized system.</p>
+            </div>
+
+            <div class="visual-footer">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-xs text-white text-opacity-50 fw-600">TRUSTED BY</div>
+                    <div class="fw-700 text-sm">CHRIST UNIVERSITY</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="login-form-area">
+            <div class="mb-5">
+                <h3 class="fw-700 mb-2">Welcome Back</h3>
+                <p class="text-secondary small">Please enter your university credentials to access the IMS workspace.
+                </p>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} rounded-md text-sm mb-4">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger rounded-md text-sm mb-4">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label class="form-label text-xs fw-700 text-muted mb-2">UNIVERSITY EMAIL</label>
+                    <input type="email" name="email" class="form-control" placeholder="faculty.name@christuniversity.in"
+                        required>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between">
+                        <label class="form-label text-xs fw-700 text-muted mb-2">PASSWORD</label>
+                        <a href="#" class="text-xs fw-600 text-primary text-decoration-none">Forgot?</a>
+                    </div>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label text-sm text-secondary" for="remember">Keep me logged in</label>
+                </div>
+
+                <button type="submit" class="btn btn-login w-100 mb-4">Sign into IMS Workspace</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="text-xs text-muted mb-0">Student? <a href="#"
+                        class="text-primary fw-600 text-decoration-none">Login here</a></p>
             </div>
         </div>
     </div>

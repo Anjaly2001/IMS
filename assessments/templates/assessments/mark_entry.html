@@ -1,0 +1,89 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <a href="{% url 'core:evaluator_dashboard' %}"
+                class="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1 class="title-display h2 mb-0">Marks Entry</h1>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <form method="POST">
+                {% csrf_token %}
+                <h5 class="fw-700 mb-4 pb-2 border-bottom">Evaluation Details</h5>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Student</label>
+                        <select class="form-select bg-light border-0">
+                            <option>Aarav Mehta (21BAL042)</option>
+                            <option>Priya Iyer (21BAL017)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Internship Cycle</label>
+                        <select class="form-select bg-light border-0">
+                            <option>Regular Internship 3 (Corporate)</option>
+                            <option>Regular Internship 2 (Litigation)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Assessment Type</label>
+                        <select class="form-select bg-light border-0">
+                            <option>Internal Viva-Voce</option>
+                            <option>Mid-Term Review</option>
+                            <option>Final Assessment</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-600 text-sm">Maximum Marks</label>
+                        <input type="number" class="form-control bg-light border-0" value="100" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-600 text-sm">Marks Awarded</label>
+                        <input type="number" class="form-control border-primary" placeholder="0-100" min="0" max="100"
+                            style="border-width: 2px;">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-600 text-sm">Evaluator Remarks</label>
+                    <textarea class="form-control bg-light border-0" rows="5"
+                        placeholder="Enter detailed feedback for the student..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                    <button type="button" class="btn btn-light px-4 rounded-md">View Student History</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary px-4 rounded-md">Save as Draft</button>
+                        <button type="submit" class="btn btn-primary px-5 rounded-md fw-600">Submit Marks</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Instructions Pod -->
+    <div class="col-lg-4">
+        <div class="card bg-light border-0">
+            <h6 class="fw-700 mb-3"><i class="bi bi-info-circle me-2"></i>Marking Guidelines</h6>
+            <div class="text-sm text-secondary">
+                <p class="mb-3">1. Ensure you have reviewed the <strong>Internship Diary</strong> and the
+                    <strong>Completion Certificate</strong> before awarding marks.</p>
+                <p class="mb-3">2. "Maximum Marks" are fixed based on the selected Assessment Type.</p>
+                <p class="mb-0">3. Once submitted, marks will be visible to the Department Coordinator but not yet to
+                    the student.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

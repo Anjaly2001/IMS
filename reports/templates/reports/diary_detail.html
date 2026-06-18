@@ -1,0 +1,103 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <a href="{% url 'reports:review' student.reg_no %}"
+                class="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1 class="title-display h2 mb-0">Week {{ week_num }} Reflection</h1>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="mb-4">
+                <h6 class="text-xs fw-700 text-muted mb-2">DAILY LOGS</h6>
+                <div class="table-responsive">
+                    <table class="table-ims text-sm">
+                        <thead>
+                            <tr>
+                                <th style="width: 100px;">Day</th>
+                                <th>Description of Work Done</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Monday</td>
+                                <td>Assisted in legal research on Consumer Protection Act. Drafted a research memo (3
+                                    pages) on unfair trade practices.</td>
+                            </tr>
+                            <tr>
+                                <td>Tuesday</td>
+                                <td>Attended client meeting with Senior Partner. Observed negotiation tactics for a real
+                                    estate settlement.</td>
+                            </tr>
+                            <tr>
+                                <td>Wednesday</td>
+                                <td>Field visit to the Civil Court. Observed cross-examination in a property dispute
+                                    case.</td>
+                            </tr>
+                            <tr>
+                                <td>Thursday</td>
+                                <td>Proofread a draft arbitration agreement. Prepared a summary of yesterday's court
+                                    proceedings.</td>
+                            </tr>
+                            <tr>
+                                <td>Friday</td>
+                                <td>Finalized weekly research reports. Met with the firm mentor for feedback on the
+                                    draft notice.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mb-4 bg-light p-4 rounded-md">
+                <h6 class="text-xs fw-700 text-muted mb-2">WEEKLY REFLECTIVE SUMMARY</h6>
+                <p class="text-secondary">This week was a significant learning curve in terms of practical legal
+                    research. I realized that while theoretical knowledge is a foundation, applying statutes to complex
+                    real-world settlements requires a shift in perspective. Observing the client meeting showed me the
+                    importance of soft skills and active listening in the legal profession.</p>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-xs text-muted">ENTRY SUBMITTED ON: JAN 29, 2026</div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger px-4 rounded-md fw-600">Request Re-submission</button>
+                    <button class="btn btn-success px-5 rounded-md fw-600"><i class="bi bi-check-lg me-2"></i>Approve &
+                        Sign-off</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <h6 class="fw-700 mb-3">Feedback History</h6>
+            <div class="d-flex gap-3 mb-4">
+                <div class="avatar-sm bg-light rounded-circle flex-shrink-0" style="width: 30px; height: 30px;"></div>
+                <div>
+                    <div class="text-xs fw-700">Dr. Ramanathan</div>
+                    <div class="text-xs text-muted">Jan 22 (Week 2 Review)</div>
+                    <p class="text-sm border-start ps-2 mt-1">Excellent research work, but try to focus more on the
+                        procedural aspects of the court in your next week's entry.</p>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="form-label text-xs fw-700 text-muted">ADD MENTOR FEEDBACK</label>
+                <textarea class="form-control bg-light border-0 text-sm" rows="3"
+                    placeholder="Add your comments here before signing off..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

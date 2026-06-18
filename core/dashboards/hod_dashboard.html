@@ -1,0 +1,109 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-end mb-2">
+            <div>
+                <div class="text-secondary small fw-600 mb-1">HEAD OF DEPARTMENT</div>
+                <h1 class="title-display h2 mb-0">Governance & Approvals</h1>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary fw-600 px-4 rounded-md shadow-sm">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Export Final Marksheet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HOD Metrics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="text-secondary small fw-600">Pending Internship Sign-offs</div>
+                <i class="bi bi-shield-check text-warning fs-4"></i>
+            </div>
+            <h2 class="mb-1">{{ pending_internships|default:0 }}</h2>
+            <div class="text-xs text-muted">Awaiting final HOD verification for completion.</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="text-secondary small fw-600">Final Marksheet Approvals</div>
+                <i class="bi bi-clipboard2-check text-primary fs-4"></i>
+            </div>
+            <h2 class="mb-1">{{ pending_marks|default:0 }}</h2>
+            <div class="text-xs text-muted">Consolidated marks awaiting your signature.</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-700 mb-0">Awaiting Your Approval</h5>
+                <a href="#" class="text-primary text-sm text-decoration-none fw-600">View All Approvals</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-ims align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-0">Student</th>
+                            <th>Requirement</th>
+                            <th>Dept. Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_approvals %}
+                        <tr>
+                            <td class="ps-0">
+                                <div class="fw-600">{{ item.student.user.get_full_name }}</div>
+                                <div class="text-xs text-muted">{{ item.student.register_number }}</div>
+                            </td>
+                            <td>{{ item.get_internship_type_display }}</td>
+                            <td><span class="badge-ims badge-success">Faculty Verified</span></td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-primary px-3 rounded-pill fw-600">Approve</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">No pending approvals at this time.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOD Audit Sidebar -->
+    <div class="col-lg-4">
+        <div class="card bg-light border-0">
+            <h6 class="fw-700 mb-3">HOD Responsibility</h6>
+            <div class="text-sm text-secondary">
+                <p class="mb-3">As the HOD, your digital signature is required to finalize all internship records and
+                    subsequent marks.</p>
+                <div class="alert alert-warning border-0 text-xs py-2 px-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Once an internship is approved by the HOD, it
+                    is considered "Officially Completed" in the student's 5-year log.
+                </div>
+                <hr>
+                <div class="text-xs">
+                    <div class="mb-2 fw-600 text-dark">LATEST SIGN-OFFS</div>
+                    <div class="d-flex gap-2 mb-2">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Aarav Mehta - Final Marksheet (2m ago)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

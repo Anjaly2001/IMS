@@ -1,0 +1,100 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <a href="{% url 'core:mentor_dashboard' %}"
+                class="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="title-display h2 mb-0">Internship Diary</h1>
+                <div class="text-secondary small fw-600">STUDENT: {{ student.name }} ({{ student.reg_no }})</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card p-0 overflow-hidden">
+            <div class="px-4 py-3 border-bottom bg-light bg-opacity-50">
+                <h5 class="fw-700 mb-0">Weekly Reflection Timeline</h5>
+            </div>
+            <div class="p-4">
+                <ul class="list-unstyled mb-0">
+                    {% for week in weeks %}
+                    <li class="d-flex align-items-start gap-4 mb-5 position-relative">
+                        {% if not forloop.last %}
+                        <div class="position-absolute border-start"
+                            style="left: 15px; top: 35px; bottom: -45px; border-style: dashed !important; border-color: var(--border-color) !important;">
+                        </div>
+                        {% endif %}
+
+                        <div class="week-marker rounded-circle d-flex align-items-center justify-content-center fw-700
+                            {% if week.status == 'Approved' %}bg-success text-white
+                            {% elif week.status == 'Pending' %}bg-warning text-white
+                            {% else %}bg-light text-muted{% endif %}" style="width: 32px; height: 32px; z-index: 1;">
+                            {{ week.num }}
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-700 mb-0">Week {{ week.num }} Summary</h6>
+                                    <div class="text-xs text-muted">{{ week.date }}</div>
+                                </div>
+                                <div
+                                    class="badge-ims {% if week.status == 'Approved' %}badge-success{% elif week.status == 'Pending' %}badge-warning{% else %}badge-info{% endif %}">
+                                    {{ week.status }}
+                                </div>
+                            </div>
+
+                            {% if week.status != 'Future' %}
+                            <p class="text-secondary text-sm mb-3">
+                                Observed court proceedings on public interest litigations. Assisted senior associate in
+                                drafting a legal notice for a contractual dispute...
+                            </p>
+                            <a href="{% url 'reports:detail' student.reg_no week.num %}"
+                                class="btn btn-sm btn-light border px-3 fw-600">
+                                {% if week.status == 'Pending' %}Review & Sign{% else %}View Entry{% endif %}
+                            </a>
+                            {% else %}
+                            <p class="text-muted text-sm italic mb-0">Entry scheduled for submission on {{ week.date }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Profile -->
+    <div class="col-lg-4">
+        <div class="card h-fit">
+            <h6 class="fw-700 mb-3">Internship Details</h6>
+            <div class="mb-3">
+                <div class="text-xs text-muted mb-1">FIRM/ORGANISATION</div>
+                <div class="fw-600 text-sm">Khaitan & Co., Bangalore</div>
+            </div>
+            <div class="mb-3">
+                <div class="text-xs text-muted mb-1">MENTOR AT FIRM</div>
+                <div class="fw-600 text-sm">Mr. Shivam Reddy</div>
+            </div>
+            <div class="mb-3">
+                <div class="text-xs text-muted mb-1">TOTAL DURATION</div>
+                <div class="fw-600 text-sm">4 Weeks (Jan 2 - Jan 30)</div>
+            </div>
+            <hr>
+            <div class="footer-note text-xs text-secondary">
+                <i class="bi bi-info-circle me-1"></i>
+                Faculty signature for weeks 1 and 2 has been recorded digitally.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

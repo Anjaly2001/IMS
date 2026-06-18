@@ -36,7 +36,44 @@ def logout_view(request):
     return redirect('accounts:login')
 
 
+@login_required
+def roles_permissions(request):
+    """View to manage user roles and system permissions."""
+    return render(request, 'accounts/roles_permissions.html')
+
+@login_required
+def user_list(request):
+    """View all users in the system."""
+    from .models import User
+    users = User.objects.all().order_by('-created_at')
+    return render(request, 'accounts/user_list.html', {'users': users})
+
+@login_required
+def user_upsert(request, user_id=None):
+    """Create or Edit a user."""
+    from .models import User
+    from .forms import UserManagementForm
+    
+    user_instance = None
+    if user_id:
+        user_instance = User.objects.get(id=user_id)
+        
+    if request.method == 'POST':
+        form = UserManagementForm(request.POST, instance=user_instance)
+        if form.is_valid():
+            form.save()
+            return redirect('accounts:user_list')
+    else:
+        form = UserManagementForm(instance=user_instance)
+        
+    return render(request, 'accounts/user_form.html', {
+        'form': form,
+        'user_instance': user_instance
+    })
+
 def _role_redirect(user):
+
+
     """Redirect user to appropriate dashboard based on role."""
     if user.is_superuser:
         return redirect('core:admin_dashboard')

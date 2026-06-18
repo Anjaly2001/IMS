@@ -1,0 +1,97 @@
+{% extends 'main/dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <a href="{% url 'core:mentor_dashboard' %}"
+                class="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h1 class="title-display h2 mb-0">Viva-Voce Evaluation</h1>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Student Info Summary -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="text-center py-4 border-bottom mb-4">
+                <div class="avatar-lg bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-700 mx-auto mb-3"
+                    style="width: 80px; height: 80px; font-size: 2rem;">
+                    {{ student.name|first }}
+                </div>
+                <h4 class="fw-700 mb-1">{{ student.name }}</h4>
+                <div class="text-muted text-sm">{{ student.reg_no }}</div>
+            </div>
+
+            <div class="px-2">
+                <div class="mb-4">
+                    <label class="text-muted text-xs fw-600 block mb-1">CURRENT ORGANISATION</label>
+                    <div class="fw-600">{{ student.organisation }}</div>
+                </div>
+                <div class="mb-4">
+                    <label class="text-muted text-xs fw-600 block mb-1">INTERNSHIP CYCLE</label>
+                    <div class="fw-600">Internship 3 (Corporate Law)</div>
+                </div>
+                <div class="mb-4">
+                    <label class="text-muted text-xs fw-600 block mb-1">BATCH</label>
+                    <div class="fw-600">{{ student.batch }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marking Form -->
+    <div class="col-lg-8">
+        <div class="card">
+            <form method="POST">
+                {% csrf_token %}
+                <h5 class="fw-700 mb-4 pb-2 border-bottom">Assessment Rubric</h5>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Subject Knowledge (25 Marks)</label>
+                        <input type="number" class="form-control bg-light border-0" placeholder="0-25" max="25" min="0">
+                        <div class="form-text text-xs">Understanding of legal principles during the internship.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Practical Exposure (25 Marks)</label>
+                        <input type="number" class="form-control bg-light border-0" placeholder="0-25" max="25" min="0">
+                        <div class="form-text text-xs">Knowledge of procedural aspects and office environment.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Communication Skills (10 Marks)</label>
+                        <input type="number" class="form-control bg-light border-0" placeholder="0-10" max="10" min="0">
+                        <div class="form-text text-xs">Clarity of expression and professional conduct.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600 text-sm">Diary Maintenance (40 Marks)</label>
+                        <input type="number" class="form-control bg-light border-0" placeholder="0-40" max="40" min="0">
+                        <div class="form-text text-xs">Quality of weekly reflections and regular updates.</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-600 text-sm">Overall Feedback & Remarks</label>
+                    <textarea class="form-control bg-light border-0" rows="4"
+                        placeholder="Mention any specific areas for improvement..."></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                    <div>
+                        <div class="text-muted text-xs">MAXIMUM MARKS</div>
+                        <div class="h4 fw-bold mb-0">100</div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-light px-4 me-2 rounded-md">Save as Draft</button>
+                        <button type="submit" class="btn btn-primary px-5 rounded-md">Submit Final Assessment</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

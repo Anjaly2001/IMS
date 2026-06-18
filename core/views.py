@@ -68,8 +68,23 @@ def evaluator_dashboard(request):
 
 @login_required
 def hod_dashboard(request):
-    """HoD dashboard."""
-    return render(request, 'core/dashboards/hod_dashboard.html')
+    """HoD dashboard with pending approvals."""
+    from internships.models import Internship
+    from assessments.models import Assessment
+    
+    pending_internships = Internship.objects.filter(status='verifying', hod_approved=False).count()
+    pending_marks = Assessment.objects.filter(is_finalized=True, hod_signoff=False).count()
+    
+    # Mock recent pending list
+    recent_approvals = Internship.objects.filter(status='verifying', hod_approved=False)[:5]
+    
+    context = {
+        'pending_internships': pending_internships,
+        'pending_marks': pending_marks,
+        'recent_approvals': recent_approvals,
+    }
+    return render(request, 'core/dashboards/hod_dashboard.html', context)
+
 
 
 @login_required
