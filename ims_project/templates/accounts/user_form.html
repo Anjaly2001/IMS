@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'user_list' %}" class="breadcrumb-link">User Management</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{% if form.instance.pk %}Edit User{% else %}Create User{% endif %}</span>{% endblock %}
+{% block content %}
+<div class="row"><div class="col-lg-8">
+<div class="card"><div class="card-header">{{ title }}</div><div class="card-body">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-md-6">
+        <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+        {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
+        {% if field.help_text %}<div class="form-text" style="font-size:.78rem;">{{ field.help_text }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-navy">Save User</button>
+      <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div></div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Score Card{% endblock %}
+{% block page_title %}Final Score Card{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'student_list' %}" class="breadcrumb-link">Students</a><span class="breadcrumb-sep">/</span><a href="{% url 'student_detail' student.pk %}" class="breadcrumb-link">{{ student.register_number }}</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Score Card</span>{% endblock %}
+{% block extra_head %}
+<style>
+  @media print {
+    #sidebar, #topbar, .no-print { display: none !important; }
+    #main { margin-left: 0 !important; }
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-3 no-print">
+  <button onclick="window.print()" class="btn btn-navy"><i class="bi bi-printer me-1"></i>Print</button>
+</div>
+
+<div class="card" style="max-width:800px;margin:0 auto;">
+  <div class="card-body p-4">
+    <div class="text-center mb-4 pb-3 border-bottom">
+      <h5 class="fw-700 mb-0" style="color:#1e3a5f;">Internship Management &amp; Assessment System</h5>
+      <div class="text-muted">Final Consolidated Internship Score Card</div>
+    </div>
+
+    <table class="table table-borderless mb-4" style="font-size:.9rem;">
+      <tr><td class="text-muted" style="width:180px;">Student Name</td><td class="fw-600">{{ student.name }}</td></tr>
+      <tr><td class="text-muted">Register Number</td><td class="fw-600">{{ student.register_number }}</td></tr>
+      <tr><td class="text-muted">Programme</td><td>{{ student.programme.name }}</td></tr>
+      <tr><td class="text-muted">Batch</td><td>{{ student.batch.name }}</td></tr>
+      <tr><td class="text-muted">Degree Period</td><td>{{ student.degree_start_date }} — {{ student.degree_end_date }}</td></tr>
+    </table>
+
+    <h6 class="fw-700 mb-2" style="color:#1e3a5f;">Regular Internships (Best 7 of 8 Considered)</h6>
+    <table class="table table-bordered table-sm mb-4" style="font-size:.85rem;">
+      <thead class="table-light"><tr><th>#</th>
+        {% for row in result.regular_marks %}<th>{{ row.number }}</th>{% endfor %}
+      </tr></thead>
+      <tbody>
+        <tr><td class="fw-600">Viva Mark</td>
+        {% for row in result.regular_marks %}<td>{% if row.mark %}{{ row.mark }}{% else %}—{% endif %}</td>{% endfor %}
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="table table-bordered mb-4" style="font-size:.9rem;">
+      <tbody>
+        <tr>
+          <td class="fw-500">Best 7 of 8 Regular Internship Average</td>
+          <td class="text-end fw-700">{% if result.regular_avg %}{{ result.regular_avg }} / 100{% else %}—{% endif %}</td>
+          <td class="text-muted text-end" style="width:90px;">Weight 70%</td>
+        </tr>
+        <tr>
+          <td class="fw-500">Assessment Internship (5th Year) Viva Mark</td>
+          <td class="text-end fw-700">{% if result.assessment_mark %}{{ result.assessment_mark }} / 100{% else %}Not entered{% endif %}</td>
+          <td class="text-muted text-end">Weight 30%</td>
+        </tr>
+        <tr class="table-light">
+          <td class="fw-700">Final Consolidated Score</td>
+          <td class="text-end fw-700" style="font-size:1.1rem;color:#1e3a5f;">{% if result.final_score is not None %}{{ result.final_score }} / 100{% else %}—{% endif %}</td>
+          <td class="text-end">
+            {% if result.is_provisional %}<span class="badge bg-warning text-dark">Provisional</span>{% else %}<span class="badge bg-success">Final</span>{% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="text-muted" style="font-size:.78rem;">
+      Calculation formula: Final Score = 70% × (average of best 7 of 8 regular internship viva marks) + 30% × (assessment internship viva mark).
+      {% if result.is_provisional %}This score is provisional because the assessment internship has not yet been marked; it currently reflects the regular internship average only.{% endif %}
+    </p>
+  </div>
+</div>
+{% endblock %}

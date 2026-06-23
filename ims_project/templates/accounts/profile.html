@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Profile</span>{% endblock %}
+{% block content %}
+<div class="row"><div class="col-lg-6">
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#1e3a5f,#2d5282);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-person-fill text-white" style="font-size:2rem;"></i>
+      </div>
+      <div>
+        <h5 class="mb-0">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
+        <span class="badge bg-light text-dark border">{{ user_obj.get_role_display }}</span>
+      </div>
+    </div>
+    <table class="table table-sm" style="font-size:.875rem;">
+      <tr><td class="text-muted">Username</td><td>{{ user_obj.username }}</td></tr>
+      <tr><td class="text-muted">Email</td><td>{{ user_obj.email|default:"—" }}</td></tr>
+      <tr><td class="text-muted">Mobile</td><td>{{ user_obj.mobile|default:"—" }}</td></tr>
+      <tr><td class="text-muted">Department</td><td>{{ user_obj.department|default:"—" }}</td></tr>
+      {% if user_obj.employee_id %}<tr><td class="text-muted">Employee ID</td><td>{{ user_obj.employee_id }}</td></tr>{% endif %}
+    </table>
+  </div>
+</div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Assign Mentor{% endblock %}
+{% block page_title %}Assign Faculty Mentor{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'mentor_list' %}" class="breadcrumb-link">Mentor Assignments</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Assign Mentor</span>{% endblock %}
+{% block content %}
+<div class="row"><div class="col-lg-7">
+<div class="card"><div class="card-header">{% if student %}Assign Mentor for {{ student.name }}{% else %}Assign Mentor{% endif %}</div>
+<div class="card-body">
+  <form method="post">{% csrf_token %}
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-md-6">
+        <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+        {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-navy">Assign Mentor</button>
+      <a href="{% url 'mentor_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div></div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Mentor Report{% endblock %}
+{% block page_title %}Mentor-wise Report{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'report_home' %}" class="breadcrumb-link">Reports</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Mentor-wise Report</span>{% endblock %}
+{% block content %}
+<div class="row g-3">
+  {% for d in data %}
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <span>{{ d.mentor.get_full_name|default:d.mentor.username }}</span>
+        <span class="badge bg-navy">{{ d.count }} students</span>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted" style="font-size:.85rem;">Pending Verifications</span>
+          <span class="badge bg-warning text-dark">{{ d.pending }}</span>
+        </div>
+        <div class="text-muted" style="font-size:.8rem;">
+          {% for a in d.assignments|slice:":5" %}
+            {{ a.student.register_number }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}<div class="col-12"><div class="card"><div class="card-body text-center py-5 text-muted">No faculty mentors found.</div></div></div>{% endfor %}
+</div>
+{% endblock %}

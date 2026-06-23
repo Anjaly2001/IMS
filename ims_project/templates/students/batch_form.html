@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'batch_list' %}" class="breadcrumb-link">Batches</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Add Batch</span>{% endblock %}
+{% block content %}
+<div class="row"><div class="col-md-6">
+<div class="card"><div class="card-body">
+  <form method="post">{% csrf_token %}
+    {% for field in form %}<div class="mb-3"><label class="form-label">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+    <button type="submit" class="btn btn-navy">Save</button>
+    <a href="{% url 'batch_list' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+  </form>
+</div></div></div></div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span>{% if record %}<a href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">{{ record.student.register_number }} — #{{ record.internship_number }}</a>{% else %}<a href="{% url 'internship_detail' mark.internship_record.pk %}" class="breadcrumb-link">{{ mark.internship_record.student.register_number }} — #{{ mark.internship_record.internship_number }}</a>{% endif %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ title }}</span>{% endblock %}
+{% block content %}
+<div class="row"><div class="col-lg-7">
+<div class="card">
+  <div class="card-header">{% if record %}{{ title }} — Internship {{ record.internship_number }} ({{ record.student.name }}){% else %}{{ title }} — {{ mark.internship_record }}{% endif %}</div>
+  <div class="card-body">
+    <form method="post">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <div class="row g-3">
+        {% for field in form %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+          {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-navy">Save Marks</button>
+        {% if record %}
+        <a href="{% url 'internship_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+        {% else %}
+        <a href="{% url 'internship_detail' mark.internship_record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+</div></div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Student Report{% endblock %}
+{% block page_title %}Student-wise Internship Report{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'report_home' %}" class="breadcrumb-link">Reports</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Student-wise Report</span>{% endblock %}
+{% block content %}
+<div class="card mb-3"><div class="card-body py-2">
+  <form method="get" class="row g-2">
+    <div class="col-md-3"><select name="programme" class="form-select form-select-sm"><option value="">All Programmes</option>{% for p in programmes %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-3"><select name="batch" class="form-select form-select-sm"><option value="">All Batches</option>{% for b in batches %}<option value="{{ b.pk }}">{{ b.name }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><select name="status" class="form-select form-select-sm"><option value="">All Statuses</option><option value="active">Active</option><option value="completed">Completed</option><option value="on_break">On Break</option></select></div>
+    <div class="col-auto"><button class="btn btn-sm btn-navy">Filter</button></div>
+  </form>
+</div></div>
+<div class="card"><div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>Register No</th><th>Name</th><th>Programme</th><th>Batch</th><th>Internships</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td><a href="{% url 'student_detail' s.pk %}">{{ s.register_number }}</a></td>
+        <td>{{ s.name }}</td>
+        <td>{{ s.programme.name }}</td>
+        <td>{{ s.batch.name }}</td>
+        <td>{{ s.internship_records.count }}</td>
+        <td>{% if s.status == 'active' %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">{{ s.get_status_display }}</span>{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="text-center py-5 text-muted">No students found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

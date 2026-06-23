@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Mentor Assignments{% endblock %}
+{% block page_title %}Faculty Mentor Assignments{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Mentor Assignments</span>{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <p class="text-muted mb-0">{{ assignments.count }} assignment(s)</p>
+  <a href="{% url 'mentor_assign' %}" class="btn btn-navy"><i class="bi bi-plus me-1"></i>Assign Mentor</a>
+</div>
+<div class="card"><div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>Student</th><th>Faculty Mentor</th><th>Effective From</th><th>Effective To</th><th>Level</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for a in assignments %}
+      <tr>
+        <td><a href="{% url 'student_detail' a.student.pk %}">{{ a.student.register_number }}</a><br><small class="text-muted">{{ a.student.name }}</small></td>
+        <td>{{ a.faculty.get_full_name|default:a.faculty.username }}</td>
+        <td>{{ a.effective_from }}</td>
+        <td>{{ a.effective_to|default:"—" }}</td>
+        <td><span class="badge bg-light text-dark border">{{ a.get_assignment_level_display }}</span></td>
+        <td>{% if a.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Ended</span>{% endif %}</td>
+      </tr>
+      {% empty %}<tr><td colspan="6" class="text-center py-5 text-muted">No mentor assignments found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

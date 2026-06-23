@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+{% if role == 'system_admin' %}
+<!-- Admin Dashboard -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1e3a5f,#2d5282);">
+      <div class="stat-value">{{ total_students|default:0 }}</div>
+      <div class="stat-label">Active Students</div>
+      <i class="bi bi-people stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#276749,#38a169);">
+      <div class="stat-value">{{ completed_internships|default:0 }}</div>
+      <div class="stat-label">Completed Internships</div>
+      <i class="bi bi-check-circle stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#c05621,#ed8936);">
+      <div class="stat-value">{{ pending_internships|default:0 }}</div>
+      <div class="stat-label">Pending Internships</div>
+      <i class="bi bi-hourglass-split stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#553c9a,#805ad5);">
+      <div class="stat-value">{{ total_orgs|default:0 }}</div>
+      <div class="stat-label">Organisations</div>
+      <i class="bi bi-building stat-icon"></i>
+    </div>
+  </div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Pending Actions</span>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <span class="text-muted" style="font-size:.875rem;">Pending Verification</span>
+          <a href="{% url 'internship_list' %}?status=submitted" class="badge bg-danger text-decoration-none">{{ pending_verification|default:0 }}</a>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <span class="text-muted" style="font-size:.875rem;">Marks to Enter</span>
+          <a href="{% url 'pending_report' %}" class="badge bg-warning text-dark text-decoration-none">{{ pending_marks|default:0 }}</a>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-2">
+          <span class="text-muted" style="font-size:.875rem;">Pending Approvals</span>
+          <a href="{% url 'internship_list' %}?status=marks_entered" class="badge bg-info text-decoration-none">—</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Recent Internship Records</span>
+        <a href="{% url 'internship_list' %}" class="btn btn-sm btn-navy">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr>
+            <th>Student</th><th>Organisation</th><th>Type</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            {% for r in recent_internships %}
+            <tr>
+              <td><a href="{% url 'student_detail' r.student.pk %}" class="text-decoration-none fw-500">{{ r.student.register_number }}</a><br><small class="text-muted">{{ r.student.name }}</small></td>
+              <td>{{ r.organisation.name|truncatechars:30 }}</td>
+              <td><span class="badge bg-light text-dark border">{{ r.get_internship_type_display }}</span></td>
+              <td>
+                {% if r.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
+                {% elif r.verification_status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>
+                {% elif r.verification_status == 'locked' %}<span class="badge bg-secondary">Locked</span>
+                {% elif r.verification_status == 'needs_correction' %}<span class="badge bg-danger">Needs Correction</span>
+                {% else %}<span class="badge bg-light text-dark border">{{ r.get_verification_status_display }}</span>{% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted py-4">No internship records yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6 col-lg-3">
+    <a href="{% url 'student_create' %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#ebf4ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-person-plus text-primary" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Add Student</div><div class="text-muted" style="font-size:.78rem;">Register a new student</div></div>
+    </a>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <a href="{% url 'internship_create' %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#f0fff4;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-briefcase text-success" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Add Internship</div><div class="text-muted" style="font-size:.78rem;">Log an internship record</div></div>
+    </a>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <a href="{% url 'org_create' %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#fffbeb;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-building text-warning" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Add Organisation</div><div class="text-muted" style="font-size:.78rem;">Add new placement org</div></div>
+    </a>
+  </div>
+  <div class="col-md-6 col-lg-3">
+    <a href="{% url 'report_home' %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#faf5ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-bar-chart text-purple" style="font-size:1.3rem;color:#805ad5;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">View Reports</div><div class="text-muted" style="font-size:.78rem;">Analytics &amp; exports</div></div>
+    </a>
+  </div>
+</div>
+
+{% elif role == 'faculty_mentor' %}
+<!-- Faculty Dashboard -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1e3a5f,#2d5282);">
+      <div class="stat-value">{{ assigned_count|default:0 }}</div>
+      <div class="stat-label">My Students</div>
+      <i class="bi bi-people stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#c05621,#ed8936);">
+      <div class="stat-value">{{ pending_verification|default:0 }}</div>
+      <div class="stat-label">Pending Verification</div>
+      <i class="bi bi-exclamation-circle stat-icon"></i>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header">My Assigned Students</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Register No</th><th>Name</th><th>Programme</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for s in my_students %}
+        <tr>
+          <td><a href="{% url 'student_detail' s.pk %}">{{ s.register_number }}</a></td>
+          <td>{{ s.name }}</td>
+          <td>{{ s.programme.code }}</td>
+          <td><span class="badge bg-{{ s.status|yesno:'success,warning,secondary' }}">{{ s.get_status_display }}</span></td>
+          <td><a href="{% url 'student_detail' s.pk %}" class="btn btn-sm btn-navy">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No students assigned yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% elif role == 'student' %}
+<!-- Student Dashboard -->
+{% if student %}
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <div style="width:48px;height:48px;background:#ebf4ff;border-radius:.75rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-person-fill text-primary" style="font-size:1.5rem;"></i></div>
+        <div>
+          <div class="fw-700">{{ student.name }}</div>
+          <div class="text-muted" style="font-size:.8rem;">{{ student.register_number }}</div>
+        </div>
+      </div>
+      <div style="font-size:.85rem;"><span class="text-muted">Programme:</span> {{ student.programme.name }}</div>
+      <div style="font-size:.85rem;"><span class="text-muted">Batch:</span> {{ student.batch.name }}</div>
+      {% if mentor %}<div style="font-size:.85rem;"><span class="text-muted">Mentor:</span> {{ mentor.faculty.get_full_name|default:mentor.faculty.username }}</div>{% endif %}
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header">My Internship Records</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>#</th><th>Organisation</th><th>Dates</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for r in internships %}
+        <tr>
+          <td>{{ r.internship_number }}</td>
+          <td>{{ r.organisation.name }}</td>
+          <td style="font-size:.83rem;">{{ r.start_date }} — {{ r.end_date }}</td>
+          <td>
+            {% if r.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
+            {% elif r.verification_status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>
+            {% elif r.verification_status == 'locked' %}<span class="badge bg-secondary">Completed</span>
+            {% else %}<span class="badge bg-light text-dark border">{{ r.get_verification_status_display }}</span>{% endif %}
+          </td>
+          <td><a href="{% url 'internship_detail' r.pk %}" class="btn btn-sm btn-navy">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No internship records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-warning">Your student profile has not been set up yet. Please contact the administrator.</div>
+{% endif %}
+
+{% else %}
+<div class="alert alert-info">Welcome to the Internship Management System.</div>
+{% endif %}
+{% endblock %}

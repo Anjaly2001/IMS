@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Batches{% endblock %}
+{% block page_title %}Batches{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Batches</span>{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <span></span>
+  {% if user.is_admin %}<a href="{% url 'batch_create' %}" class="btn btn-navy"><i class="bi bi-plus me-1"></i>Add Batch</a>{% endif %}
+</div>
+<div class="card"><div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>Programme</th><th>Batch</th><th>Start Year</th><th>End Year</th><th>Active</th></tr></thead>
+    <tbody>
+      {% for b in batches %}<tr><td>{{ b.programme.name }}</td><td>{{ b.name }}</td><td>{{ b.start_year }}</td><td>{{ b.end_year }}</td><td>{% if b.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td></tr>
+      {% empty %}<tr><td colspan="5" class="text-center py-4 text-muted">No batches found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

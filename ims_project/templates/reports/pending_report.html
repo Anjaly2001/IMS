@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Pending Report{% endblock %}
+{% block page_title %}Pending Marks & Documents{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'report_home' %}" class="breadcrumb-link">Reports</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Pending Marks &amp; Documents</span>{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Pending Marks Entry</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Student</th><th>Internship</th><th>Organisation</th></tr></thead>
+          <tbody>
+            {% for r in pending_marks %}
+            <tr><td><a href="{% url 'internship_detail' r.pk %}">{{ r.student.register_number }}</a></td><td>{{ r.internship_number }}</td><td>{{ r.organisation.name|truncatechars:25 }}</td></tr>
+            {% empty %}<tr><td colspan="3" class="text-center py-4 text-muted">No pending marks.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Pending Document Uploads</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Student</th><th>Internship</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for r in pending_docs %}
+            <tr><td><a href="{% url 'internship_detail' r.pk %}">{{ r.student.register_number }}</a></td><td>{{ r.internship_number }}</td><td><span class="badge bg-warning text-dark">Missing Certificate</span></td></tr>
+            {% empty %}<tr><td colspan="3" class="text-center py-4 text-muted">No pending documents.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

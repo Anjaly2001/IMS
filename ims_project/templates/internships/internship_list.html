@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Internship Records{% endblock %}
+{% block page_title %}Internship Records{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Internship Records</span>{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <p class="text-muted mb-0">{{ records.count }} record(s) found</p>
+  <a href="{% url 'internship_create' %}" class="btn btn-navy"><i class="bi bi-plus-lg me-1"></i>Add Internship</a>
+</div>
+<div class="card mb-3"><div class="card-body py-2">
+  <form method="get" class="row g-2">
+    <div class="col-md-4"><input type="text" name="q" class="form-control form-control-sm" placeholder="Search student, organisation..." value="{{ q }}"></div>
+    <div class="col-md-3"><select name="status" class="form-select form-select-sm"><option value="">All Statuses</option>{% for val,label in statuses %}<option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-md-2"><select name="type" class="form-select form-select-sm"><option value="">All Types</option>{% for val,label in types %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select></div>
+    <div class="col-auto"><button class="btn btn-sm btn-navy">Filter</button></div>
+    <div class="col-auto"><a href="{% url 'internship_list' %}" class="btn btn-sm btn-outline-secondary">Clear</a></div>
+  </form>
+</div></div>
+<div class="card"><div class="table-responsive">
+  <table class="table table-hover mb-0">
+    <thead><tr><th>Student</th><th>Internship #</th><th>Organisation</th><th>Period</th><th>Type</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for r in records %}
+      <tr>
+        <td><a href="{% url 'student_detail' r.student.pk %}" class="text-decoration-none fw-500">{{ r.student.register_number }}</a><br><small class="text-muted">{{ r.student.name }}</small></td>
+        <td class="fw-600">{{ r.internship_number }}</td>
+        <td>{{ r.organisation.name|truncatechars:28 }}</td>
+        <td style="font-size:.82rem;">{{ r.start_date }} — {{ r.end_date }}</td>
+        <td><span class="badge bg-light text-dark border">{{ r.get_internship_type_display }}</span></td>
+        <td>
+          {% if r.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
+          {% elif r.verification_status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>
+          {% elif r.verification_status == 'locked' %}<span class="badge bg-secondary">Locked</span>
+          {% elif r.verification_status == 'needs_correction' %}<span class="badge bg-danger">Needs Correction</span>
+          {% elif r.verification_status == 'marks_entered' %}<span class="badge bg-info">Marks Entered</span>
+          {% elif r.verification_status == 'approved' %}<span class="badge bg-primary">Approved</span>
+          {% else %}<span class="badge bg-light text-dark border">{{ r.get_verification_status_display }}</span>{% endif %}
+        </td>
+        <td><a href="{% url 'internship_detail' r.pk %}" class="btn btn-sm btn-navy">View</a></td>
+      </tr>
+      {% empty %}<tr><td colspan="7" class="text-center py-5 text-muted">No internship records found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endblock %}

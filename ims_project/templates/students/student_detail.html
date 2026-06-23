@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.name }}{% endblock %}
+{% block page_title %}Student Profile{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'student_list' %}" class="breadcrumb-link">Students</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ student.register_number }}</span>{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <!-- Left: Student Info -->
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div style="width:56px;height:56px;background:linear-gradient(135deg,#1e3a5f,#2d5282);border-radius:.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-person-fill text-white" style="font-size:1.75rem;"></i>
+          </div>
+          <div>
+            <h5 class="mb-0 fw-700">{{ student.name }}</h5>
+            <div class="text-muted" style="font-size:.85rem;">{{ student.register_number }}</div>
+          </div>
+        </div>
+        <table class="table table-sm mb-0" style="font-size:.875rem;">
+          <tr><td class="text-muted fw-500">Programme</td><td>{{ student.programme.name }}</td></tr>
+          <tr><td class="text-muted fw-500">Batch</td><td>{{ student.batch.name }}</td></tr>
+          <tr><td class="text-muted fw-500">Email</td><td>{{ student.email }}</td></tr>
+          {% if student.mobile %}<tr><td class="text-muted fw-500">Mobile</td><td>{{ student.mobile }}</td></tr>{% endif %}
+          <tr><td class="text-muted fw-500">Degree Start</td><td>{{ student.degree_start_date }}</td></tr>
+          <tr><td class="text-muted fw-500">Degree End</td><td>{{ student.degree_end_date }}</td></tr>
+          <tr><td class="text-muted fw-500">Status</td><td>
+            {% if student.status == 'active' %}<span class="badge bg-success">Active</span>
+            {% elif student.status == 'completed' %}<span class="badge bg-primary">Completed</span>
+            {% elif student.status == 'on_break' %}<span class="badge bg-warning text-dark">On Break</span>
+            {% else %}<span class="badge bg-secondary">{{ student.get_status_display }}</span>{% endif %}
+          </td></tr>
+          {% if viva_avg %}<tr><td class="text-muted fw-500">Avg. Viva</td><td><strong>{{ viva_avg|floatformat:2 }}/100</strong></td></tr>{% endif %}
+        </table>
+      </div>
+      <div class="card-footer bg-white d-flex gap-2 flex-wrap">
+        {% if user.is_admin %}
+        <a href="{% url 'student_edit' student.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Edit</a>
+        {% endif %}
+        {% if not user.is_student_role %}
+        <a href="{% url 'internship_create' %}?student={{ student.pk }}" class="btn btn-sm btn-navy"><i class="bi bi-plus me-1"></i>Add Internship</a>
+        <a href="{% url 'marks_summary' student.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-bar-chart me-1"></i>Marks</a>
+        <a href="{% url 'student_score_card' student.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer me-1"></i>Score Card</a>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Current Mentor -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-person-check me-2"></i>Faculty Mentors</span>
+        {% if not user.is_student_role %}<a href="{% url 'mentor_assign_student' student.pk %}" class="btn btn-sm btn-outline-secondary">Assign</a>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% for m in mentors %}
+        <div class="d-flex align-items-center gap-2 p-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <i class="bi bi-person-circle text-muted" style="font-size:1.5rem;"></i>
+          <div style="flex:1;">
+            <div class="fw-500" style="font-size:.875rem;">{{ m.faculty.get_full_name|default:m.faculty.username }}</div>
+            <div class="text-muted" style="font-size:.78rem;">{{ m.effective_from }} {% if m.effective_to %}– {{ m.effective_to }}{% else %}– Present{% endif %}</div>
+          </div>
+          {% if m.is_active %}<span class="badge bg-success" style="font-size:.7rem;">Active</span>{% endif %}
+        </div>
+        {% empty %}<div class="p-3 text-muted" style="font-size:.875rem;">No mentor assigned.</div>{% endfor %}
+      </div>
+    </div>
+    <!-- Breaks -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-calendar-x me-2"></i>Breaks</span>
+        {% if not user.is_student_role %}<a href="{% url 'break_create' student.pk %}" class="btn btn-sm btn-outline-secondary">Add Break</a>{% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% for b in breaks %}
+        <div class="p-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <div class="fw-500" style="font-size:.875rem;">{{ b.get_break_type_display }}</div>
+          <div class="text-muted" style="font-size:.78rem;">{{ b.start_date }} — {{ b.end_date }}</div>
+          {% if b.reason %}<div class="text-muted" style="font-size:.78rem;">{{ b.reason|truncatechars:60 }}</div>{% endif %}
+        </div>
+        {% empty %}<div class="p-3 text-muted" style="font-size:.875rem;">No breaks recorded.</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Internships -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-briefcase me-2"></i>Internship Records
+        <span class="badge bg-navy ms-2">{{ internships.count }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>#</th><th>Organisation</th><th>Duration</th><th>Type</th><th>Completion</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for r in internships %}
+            <tr>
+              <td class="fw-600">{{ r.internship_number }}</td>
+              <td>
+                <div>{{ r.organisation.name|truncatechars:30 }}</div>
+                <small class="text-muted">{{ r.get_mode_display }}</small>
+              </td>
+              <td style="font-size:.82rem;">
+                {{ r.start_date }}<br>{{ r.end_date }}
+                <div class="text-muted">{{ r.duration_days }} days</div>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ r.get_internship_type_display }}</span></td>
+              <td>{% if r.completion_status == 'completed' %}<span class="badge bg-success">Completed</span>{% elif r.completion_status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>{% else %}<span class="badge bg-secondary">{{ r.get_completion_status_display }}</span>{% endif %}</td>
+              <td>{% if r.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>{% elif r.verification_status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>{% elif r.verification_status == 'locked' %}<span class="badge bg-secondary">Locked</span>{% elif r.verification_status == 'needs_correction' %}<span class="badge bg-danger">Needs Correction</span>{% elif r.verification_status == 'marks_entered' %}<span class="badge bg-info">Marks Entered</span>{% elif r.verification_status == 'approved' %}<span class="badge bg-primary">Approved</span>{% else %}<span class="badge bg-light text-dark border">{{ r.get_verification_status_display }}</span>{% endif %}</td>
+              <td><a href="{% url 'internship_detail' r.pk %}" class="btn btn-sm btn-navy">View</a></td>
+            </tr>
+            {% empty %}<tr><td colspan="7" class="text-center text-muted py-5">No internship records.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
