@@ -16,36 +16,84 @@ def mark_create(request, internship_pk):
     if record.verification_status == 'locked':
         messages.error(request, 'Marks are locked for this internship.')
         return redirect('internship_detail', pk=internship_pk)
-    form = AssessmentMarkForm(request.POST or None)
+    
+    # Check if marks already exist
+    existing = getattr(record, 'assessment_mark', None)
+    if existing:
+        return redirect('mark_edit', pk=existing.pk)
+
+    form = AssessmentMarkForm(request.POST or None, internship_record=record)
     if request.method == 'POST' and form.is_valid():
         mark = form.save(commit=False)
         mark.internship_record = record
         mark.evaluator = request.user
+        
+        # If user is evaluator, submit marks direct to submitted state (cannot edit again)
+        if request.user.role == 'faculty_evaluator':
+            mark.status = 'submitted'
+            record.verification_status = 'marks_entered'
+        else:
+            # Administrators or Coordinators can choose draft or approved
+            mark.status = 'approved' if 'approve' in request.POST else 'draft'
+            record.verification_status = 'approved' if mark.status == 'approved' else 'marks_entered'
+            
         mark.save()
-        # Update internship status
-        record.verification_status = 'marks_entered'
         record.save(update_fields=['verification_status'])
-        ActivityLog.objects.create(user=request.user, action='Entered marks', module='Assessments', record_id=str(mark.pk), new_value=f'{mark.marks_awarded}/{mark.maximum_marks}')
+        
+        ActivityLog.objects.create(
+            user=request.user, 
+            action='Entered marks', 
+            module='Assessments', 
+            record_id=str(mark.pk), 
+            new_value=f'Total: {mark.total_marks}'
+        )
         messages.success(request, 'Marks saved successfully.')
         return redirect('internship_detail', pk=internship_pk)
+        
     return render(request, 'assessments/mark_form.html', {'form': form, 'record': record, 'title': 'Add Assessment Marks'})
 
 @login_required
 @not_student
 def mark_edit(request, pk):
     mark = get_object_or_404(AssessmentMark, pk=pk)
+    # Check evaluator restriction: cannot edit after submission
+    if request.user.role == 'faculty_evaluator' and mark.status != 'draft':
+        messages.error(request, 'You cannot edit marks after submission.')
+        return redirect('internship_detail', pk=mark.internship_record.pk)
+    
     if mark.status == 'locked':
         messages.error(request, 'These marks are locked.')
         return redirect('internship_detail', pk=mark.internship_record.pk)
-    old_marks = mark.marks_awarded
-    form = AssessmentMarkForm(request.POST or None, instance=mark)
+        
+    old_marks = mark.total_marks
+    form = AssessmentMarkForm(request.POST or None, instance=mark, internship_record=mark.internship_record)
     if request.method == 'POST' and form.is_valid():
         m = form.save(commit=False)
-        if m.marks_awarded != old_marks:
-            MarkEditHistory.objects.create(assessment=mark, edited_by=request.user, old_marks=old_marks, new_marks=m.marks_awarded)
+        
+        if request.user.role == 'faculty_evaluator':
+            m.status = 'submitted'
+        else:
+            if 'approve' in request.POST:
+                m.status = 'approved'
+                m.internship_record.verification_status = 'approved'
+                m.internship_record.save(update_fields=['verification_status'])
+            elif 'lock' in request.POST:
+                m.status = 'locked'
+                m.internship_record.verification_status = 'locked'
+                m.internship_record.save(update_fields=['verification_status'])
+                
+        if m.total_marks != old_marks:
+            MarkEditHistory.objects.create(
+                assessment=mark, 
+                edited_by=request.user, 
+                old_marks=old_marks, 
+                new_marks=m.total_marks,
+                reason=request.POST.get('reason', 'Updated marks')
+            )
         m.save()
         messages.success(request, 'Marks updated.')
         return redirect('internship_detail', pk=mark.internship_record.pk)
+        
     return render(request, 'assessments/mark_form.html', {'form': form, 'mark': mark, 'title': 'Edit Marks'})
 
 @login_required
@@ -55,6 +103,9 @@ def mark_lock(request, pk):
     if request.method == 'POST':
         mark.status = 'locked'
         mark.save()
+        record = mark.internship_record
+        record.verification_status = 'locked'
+        record.save(update_fields=['verification_status'])
         ActivityLog.objects.create(user=request.user, action='Locked marks', module='Assessments', record_id=str(pk))
         messages.success(request, 'Marks locked.')
     return redirect('internship_detail', pk=mark.internship_record.pk)
@@ -73,8 +124,7 @@ def marks_summary(request, student_pk):
     for row in result['regular_marks']:
         internship = row['internship']
         mark = row['mark']
-        intermediate = AssessmentMark.objects.filter(internship_record=internship).exclude(assessment_type='viva')
-        inter_avg = intermediate.aggregate(avg=Avg('marks_awarded'))['avg']
+        eval_mark = getattr(internship, 'assessment_mark', None)
         counted = False
         if mark is not None and mark in used_marks_remaining:
             counted = True
@@ -82,7 +132,7 @@ def marks_summary(request, student_pk):
         data.append({
             'internship': internship,
             'mark': mark,
-            'intermediate_avg': inter_avg,
+            'eval_mark': eval_mark,
             'counted_in_best7': counted,
         })
 

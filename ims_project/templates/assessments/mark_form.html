@@ -1,32 +1,117 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
-{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span>{% if record %}<a href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">{{ record.student.register_number }} — #{{ record.internship_number }}</a>{% else %}<a href="{% url 'internship_detail' mark.internship_record.pk %}" class="breadcrumb-link">{{ mark.internship_record.student.register_number }} — #{{ mark.internship_record.internship_number }}</a>{% endif %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ title }}</span>{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}"
+  class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span>{% if record %}<a
+  href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">{{ record.student.register_number }} — #{{
+  record.internship_number }}</a>{% else %}<a href="{% url 'internship_detail' mark.internship_record.pk %}"
+  class="breadcrumb-link">{{ mark.internship_record.student.register_number }} — #{{
+  mark.internship_record.internship_number }}</a>{% endif %}<span class="breadcrumb-sep">/</span><span
+  class="breadcrumb-current">{{ title }}</span>{% endblock %}
 {% block content %}
-<div class="row"><div class="col-lg-7">
-<div class="card">
-  <div class="card-header">{% if record %}{{ title }} — Internship {{ record.internship_number }} ({{ record.student.name }}){% else %}{{ title }} — {{ mark.internship_record }}{% endif %}</div>
-  <div class="card-body">
-    <form method="post">{% csrf_token %}
-      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
-      <div class="row g-3">
-        {% for field in form %}
-        <div class="col-md-6">
-          <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
-          {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
-        </div>
-        {% endfor %}
+<div class="row">
+  <div class="col-lg-7">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-navy text-white fw-bold">{% if record %}{{ title }} — Internship {{
+        record.internship_number }} ({{ record.student.name }}){% else %}{{ title }} — {{ mark.internship_record }}{%
+        endif %}</div>
+      <div class="card-body p-4">
+        <form method="post" id="markForm">{% csrf_token %}
+          {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
+          <div class="row g-3">
+            {% for field in form %}
+            {% if field.name != 'ppo_marks' or record.internship_type == 'assessment' or mark.classification ==
+            'assessment' %}
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">{{ field.label }}{% if field.field.required %} <span
+                  class="text-danger">*</span>{% endif %}</label>
+              {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0
+                }}</div>{% endif %}
+            </div>
+            {% else %}
+            {{ field.as_hidden }}
+            {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Total marks display card -->
+          <div class="card bg-light border-0 mt-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-0 fw-bold text-navy">Running Total Score</h6>
+                <small class="text-muted">Auto-calculated based on component fields</small>
+              </div>
+              <div class="text-end">
+                <span class="fs-3 fw-bold text-navy" id="runningTotal">0.00</span>
+                <span class="text-muted fs-5">/ <span id="maxPossible">100</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata container to pass values cleanly to JS -->
+          <div id="form-metadata"
+            data-is-assessment="{% if record.internship_type == 'assessment' or mark.classification == 'assessment' %}true{% else %}false{% endif %}">
+          </div>
+
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit" name="save" class="btn btn-navy px-4">Save Draft</button>
+            {% if user.role != 'faculty_evaluator' %}
+            <button type="submit" name="approve" class="btn btn-success px-4">Approve Marks</button>
+            {% endif %}
+            {% if record %}
+            <a href="{% url 'internship_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+            {% else %}
+            <a href="{% url 'internship_detail' mark.internship_record.pk %}"
+              class="btn btn-outline-secondary">Cancel</a>
+            {% endif %}
+          </div>
+        </form>
       </div>
-      <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-navy">Save Marks</button>
-        {% if record %}
-        <a href="{% url 'internship_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
-        {% else %}
-        <a href="{% url 'internship_detail' mark.internship_record.pk %}" class="btn btn-outline-secondary">Cancel</a>
-        {% endif %}
-      </div>
-    </form>
+    </div>
   </div>
 </div>
-</div></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const wInput = document.getElementById("id_worksheet_marks");
+    const vInput = document.getElementById("id_viva_marks");
+    const cInput = document.getElementById("id_certificate_marks");
+    const pInput = document.getElementById("id_ppo_marks");
+
+    const metadata = document.getElementById("form-metadata");
+    const isAssessment = metadata && metadata.getAttribute("data-is-assessment") === "true";
+    const maxPossibleSpan = document.getElementById("maxPossible");
+    const runningTotalSpan = document.getElementById("runningTotal");
+
+    if (maxPossibleSpan) {
+      maxPossibleSpan.innerText = isAssessment ? "30" : "100";
+    }
+
+    function updateCalculations() {
+      let w = parseFloat(wInput ? wInput.value : 0) || 0.0;
+      let v = parseFloat(vInput ? vInput.value : 0) || 0.0;
+      let c = parseFloat(cInput ? cInput.value : 0) || 0.0;
+      let p = 0.0;
+      if (isAssessment && pInput) {
+        p = parseFloat(pInput.value) || 0.0;
+      }
+
+      let tot = w + v + c + p;
+      if (runningTotalSpan) {
+        runningTotalSpan.innerText = tot.toFixed(2);
+      }
+    }
+
+    [wInput, vInput, cInput].forEach(inp => {
+      if (inp) inp.addEventListener("input", updateCalculations);
+    });
+    if (pInput) {
+      pInput.addEventListener("input", updateCalculations);
+    }
+
+    updateCalculations();
+  });
+</script>
 {% endblock %}

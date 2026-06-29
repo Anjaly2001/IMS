@@ -4,22 +4,16 @@ from django.db import models
 class User(AbstractUser):
     ROLE_CHOICES = [
         ('system_admin', 'System Admin'),
-        ('dept_admin', 'Department Admin'),
-        ('faculty_mentor', 'Faculty Mentor'),
-        ('evaluator', 'Evaluator'),
-        ('hod', 'HoD / Programme Coordinator'),
+        ('faculty_coordinator', 'Faculty Coordinator'),
+        ('faculty_evaluator', 'Faculty Evaluator'),
         ('student', 'Student'),
     ]
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='student')
     mobile = models.CharField(max_length=15, blank=True)
     department = models.CharField(max_length=100, blank=True)
     employee_id = models.CharField(max_length=30, blank=True)
 
     def save(self, *args, **kwargs):
-        # A Django superuser (createsuperuser / is_superuser=True) always
-        # counts as System Admin in the IMS role system, no matter what the
-        # role field says — this guarantees superusers never get locked out
-        # by role-based checks, and keeps /admin/ and the app in sync.
         if self.is_superuser and self.role != 'system_admin':
             self.role = 'system_admin'
         super().save(*args, **kwargs)
@@ -29,8 +23,8 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        """System Admin or Department Admin — or any Django superuser."""
-        return self.is_superuser or self.role in ('system_admin', 'dept_admin')
+        """System Admin or Faculty Coordinator — or any Django superuser."""
+        return self.is_superuser or self.role in ('system_admin', 'faculty_coordinator')
 
     @property
     def is_system_admin(self):
@@ -38,17 +32,19 @@ class User(AbstractUser):
         return self.is_superuser or self.role == 'system_admin'
 
     @property
-    def is_faculty(self):
-        return self.role in ('faculty_mentor', 'evaluator')
+    def is_coordinator(self):
+        return self.is_superuser or self.role == 'faculty_coordinator'
 
     @property
-    def is_hod(self):
-        return self.role == 'hod'
+    def is_evaluator(self):
+        return self.role == 'faculty_evaluator'
+
+    @property
+    def is_faculty(self):
+        return self.role in ('faculty_coordinator', 'faculty_evaluator')
 
     @property
     def is_student_role(self):
-        """True only for genuine students — never true for a superuser,
-        even if role happens to say 'student'."""
         return self.role == 'student' and not self.is_superuser
 
 class ActivityLog(models.Model):

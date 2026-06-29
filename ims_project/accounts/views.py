@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from .models import User, ActivityLog
-from .forms import LoginForm, UserCreateForm, UserEditForm
+from .forms import LoginForm, UserCreateForm, UserEditForm, StudentPasswordChangeForm
 from .decorators import admin_required
 
 def login_view(request):
@@ -15,6 +15,10 @@ def login_view(request):
         user = form.get_user()
         login(request, user)
         messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
+        # Check if student is using default password (register number)
+        if user.is_student_role and user.check_password(user.username):
+            messages.warning(request, 'Please change your default password for security.')
+            return redirect('change_password')
         return redirect('dashboard')
     return render(request, 'accounts/login.html', {'form': form})
 
@@ -66,3 +70,21 @@ def activity_log(request):
 @login_required
 def profile_view(request):
     return render(request, 'accounts/profile.html', {'user_obj': request.user})
+
+@login_required
+def change_password(request):
+    """Password change view — works for all roles but primarily for students."""
+    if request.method == 'POST':
+        form = StudentPasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # keep the session alive
+            ActivityLog.objects.create(
+                user=request.user, action='Changed password',
+                module='Accounts', record_id=str(user.pk),
+            )
+            messages.success(request, 'Your password has been changed successfully.')
+            return redirect('dashboard')
+    else:
+        form = StudentPasswordChangeForm(request.user)
+    return render(request, 'accounts/change_password.html', {'form': form})

@@ -42,9 +42,9 @@ def internship_detail(request, pk):
                 return redirect('dashboard')
         except Exception:
             return redirect('dashboard')
-    assessments = record.assessments.select_related('evaluator').all()
+    assessment_mark = getattr(record, 'assessment_mark', None)
     return render(request, 'internships/internship_detail.html', {
-        'record': record, 'assessments': assessments,
+        'record': record, 'assessment_mark': assessment_mark,
     })
 
 @login_required

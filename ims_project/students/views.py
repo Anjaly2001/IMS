@@ -5,7 +5,7 @@ from django.db.models import Q
 from .models import Student, BreakRecord, Programme, Batch
 from .forms import StudentForm, BreakRecordForm, ProgrammeForm, BatchForm
 from accounts.decorators import admin_required, not_student
-from accounts.models import ActivityLog
+from accounts.models import User, ActivityLog
 
 @login_required
 @not_student
@@ -49,8 +49,8 @@ def student_detail(request, pk):
     from assessments.models import AssessmentMark
     from django.db.models import Avg
     viva_avg = AssessmentMark.objects.filter(
-        internship_record__student=student, assessment_type='viva'
-    ).aggregate(avg=Avg('marks_awarded'))['avg']
+        internship_record__student=student, classification='regular'
+    ).aggregate(avg=Avg('viva_marks'))['avg']
     return render(request, 'students/student_detail.html', {
         'student': student, 'internships': internships,
         'breaks': breaks, 'mentors': mentors, 'viva_avg': viva_avg,
@@ -61,9 +61,27 @@ def student_detail(request, pk):
 def student_create(request):
     form = StudentForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        student = form.save()
+        student = form.save(commit=False)
+
+        # Auto-create a User account for the student
+        username = form.cleaned_data['register_number'].strip()
+        if not User.objects.filter(username=username).exists():
+            user = User.objects.create_user(
+                username=username,
+                email=form.cleaned_data.get('email', ''),
+                password=username,  # default password = register number
+                first_name=form.cleaned_data['name'].split()[0] if form.cleaned_data['name'] else '',
+                last_name=' '.join(form.cleaned_data['name'].split()[1:]) if len(form.cleaned_data['name'].split()) > 1 else '',
+                role='student',
+            )
+            student.user = user
+        else:
+            existing_user = User.objects.get(username=username)
+            student.user = existing_user
+
+        student.save()
         ActivityLog.objects.create(user=request.user, action='Created student', module='Students', record_id=str(student.pk), new_value=str(student))
-        messages.success(request, f'Student {student.name} created successfully.')
+        messages.success(request, f'Student {student.name} created. Login credentials: Username = {username}, Password = {username} (default).')
         return redirect('student_list')
     return render(request, 'students/student_form.html', {'form': form, 'title': 'Add Student'})
 

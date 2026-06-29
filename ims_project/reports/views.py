@@ -93,10 +93,9 @@ def mentor_report(request):
 @not_student
 def pending_report(request):
     pending_marks = InternshipRecord.objects.filter(
-        verification_status='verified'
-    ).select_related('student','organisation').exclude(
-        assessments__assessment_type='viva'
-    )
+        verification_status='verified',
+        assessment_mark__isnull=True
+    ).select_related('student','organisation')
     pending_docs = InternshipRecord.objects.filter(
         Q(certificate='')|Q(certificate__isnull=True)
     ).select_related('student').filter(completion_status='completed')[:50]

@@ -24,11 +24,11 @@ def system_admin_required(view_func):
     return wrapper
 
 def faculty_required(view_func):
-    """Admins, faculty mentors, evaluators, HoD — or a superuser."""
+    """Admins, faculty coordinators, or evaluators — or a superuser."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         u = request.user
-        if u.is_authenticated and (u.is_admin or u.is_faculty or u.is_hod):
+        if u.is_authenticated and (u.is_admin or u.is_faculty):
             return view_func(request, *args, **kwargs)
         messages.error(request, 'Faculty access required.')
         return redirect('dashboard')
