@@ -6,7 +6,7 @@ from django.utils import timezone
 from .models import InternshipRecord, MentorAssignment
 from .forms import InternshipRecordForm, MentorAssignmentForm, VerificationForm
 from students.models import Student
-from accounts.decorators import not_student, admin_required, faculty_required
+from accounts.decorators import not_student, admin_required, faculty_required, coordinator_required
 from accounts.models import ActivityLog
 
 @login_required
@@ -34,7 +34,10 @@ def internship_list(request):
 
 @login_required
 def internship_detail(request, pk):
-    record = get_object_or_404(InternshipRecord.objects.select_related('student','organisation','verified_by'), pk=pk)
+    record = get_object_or_404(
+        InternshipRecord.objects.select_related('student', 'organisation', 'verified_by'),
+        pk=pk
+    )
     if request.user.is_student_role:
         try:
             if record.student != request.user.student_profile:
@@ -42,10 +45,7 @@ def internship_detail(request, pk):
                 return redirect('dashboard')
         except Exception:
             return redirect('dashboard')
-    assessment_mark = getattr(record, 'assessment_mark', None)
-    return render(request, 'internships/internship_detail.html', {
-        'record': record, 'assessment_mark': assessment_mark,
-    })
+    return render(request, 'internships/internship_detail.html', {'record': record})
 
 @login_required
 @not_student
@@ -56,9 +56,21 @@ def internship_create(request):
         initial['student'] = student_id
     form = InternshipRecordForm(request.POST or None, request.FILES or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
-        record = form.save()
-        ActivityLog.objects.create(user=request.user, action='Created internship record', module='Internships', record_id=str(record.pk))
-        messages.success(request, 'Internship record created.')
+        record = form.save(commit=False)
+        # Two distinct actions per SRS: "Save Draft" leaves the record in
+        # draft status for later completion; "Submit" sends it for
+        # Faculty Coordinator verification straight away.
+        if 'save_draft' in request.POST:
+            record.verification_status = 'draft'
+            action_label = 'Saved internship record as draft'
+            success_msg = 'Internship saved as draft.'
+        else:
+            record.verification_status = 'submitted'
+            action_label = 'Submitted internship record'
+            success_msg = 'Internship submitted for verification.'
+        record.save()
+        ActivityLog.objects.create(user=request.user, action=action_label, module='Internships', record_id=str(record.pk))
+        messages.success(request, success_msg)
         return redirect('internship_list')
     return render(request, 'internships/internship_form.html', {'form': form, 'title': 'Add Internship Record'})
 
@@ -69,6 +81,12 @@ def internship_edit(request, pk):
     if record.verification_status == 'locked':
         messages.error(request, 'This record is locked and cannot be edited.')
         return redirect('internship_detail', pk=pk)
+    # Per SRS: only the Faculty Coordinator can edit a record once it has
+    # left draft status. Evaluators and other non-coordinator staff may
+    # still edit while it's a draft (e.g. fixing a student's submission).
+    if record.verification_status != 'draft' and not request.user.is_coordinator:
+        messages.error(request, 'Only a Faculty Coordinator can edit a submitted internship record.')
+        return redirect('internship_detail', pk=pk)
     form = InternshipRecordForm(request.POST or None, request.FILES or None, instance=record)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -77,9 +95,10 @@ def internship_edit(request, pk):
     return render(request, 'internships/internship_form.html', {'form': form, 'title': 'Edit Internship Record', 'record': record})
 
 @login_required
-@not_student
+@coordinator_required
 def internship_verify(request, pk):
     record = get_object_or_404(InternshipRecord, pk=pk)
+    previous_status = record.verification_status
     form = VerificationForm(request.POST or None, instance=record)
     if request.method == 'POST' and form.is_valid():
         r = form.save(commit=False)
@@ -87,6 +106,17 @@ def internship_verify(request, pk):
         r.verified_at = timezone.now()
         r.save()
         ActivityLog.objects.create(user=request.user, action=f'Verification status → {r.verification_status}', module='Internships', record_id=str(pk))
+
+        # Email Automation Module: trigger only on the transition INTO
+        # 'approved' (not every save while already approved), per SRS.
+        if r.verification_status == 'approved' and previous_status != 'approved':
+            from .notifications import send_organisation_thank_you
+            sent = send_organisation_thank_you(r, triggered_by=request.user)
+            if sent:
+                messages.info(request, f'Thank-you email sent to {r.organisation.name}.')
+            elif not r.organisation.email:
+                messages.warning(request, f'Could not send thank-you email: {r.organisation.name} has no email on file.')
+
         messages.success(request, f'Status updated to: {r.get_verification_status_display()}')
         return redirect('internship_detail', pk=pk)
     return render(request, 'internships/verify_form.html', {'form': form, 'record': record})

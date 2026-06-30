@@ -14,8 +14,8 @@
 
 <div class="alert alert-light border" style="font-size:.82rem;">
   <i class="bi bi-info-circle me-1"></i>
-  <strong>Final Score</strong> = 70% × (best 7 of 8 regular internship viva marks) + 30% × (assessment internship viva mark).
-  Scores marked <span class="badge bg-warning text-dark">Provisional</span> reflect the regular average only, pending the 5th-year assessment internship.
+  <strong>Final Score</strong> = (Best 7 of 8 regular internship totals, averaged and converted to a 70-mark scale) + (Assessment Internship, out of 30).
+  Scores marked <span class="badge bg-warning text-dark">Provisional</span> reflect the regular component only, pending the 5th-year assessment internship.
 </div>
 
 <div class="card"><div class="table-responsive">
@@ -23,18 +23,20 @@
     <thead><tr>
       <th>Register No</th><th>Name</th>
       {% for i in range8 %}<th>I{{ i }}</th>{% endfor %}
-      <th>Best 7 Avg<br><small class="text-muted">(70%)</small></th>
-      <th>Assessment<br><small class="text-muted">(30%)</small></th>
-      <th>Final Score</th>
+      <th>Best 7 Avg<br><small class="text-muted">/100</small></th>
+      <th>Regular Component<br><small class="text-muted">/70</small></th>
+      <th>Assessment<br><small class="text-muted">/30</small></th>
+      <th>Final Score<br><small class="text-muted">/100</small></th>
     </tr></thead>
     <tbody>
       {% for row in data %}
       <tr>
         <td><a href="{% url 'student_detail' row.student.pk %}">{{ row.student.register_number }}</a></td>
         <td>{{ row.student.name|truncatechars:18 }}</td>
-        {% for m in row.marks %}<td>{% if m %}{{ m }}{% else %}—{% endif %}</td>{% endfor %}
-        <td class="fw-600">{% if row.regular_avg %}{{ row.regular_avg }}{% else %}—{% endif %}</td>
-        <td>{% if row.assessment_mark %}{{ row.assessment_mark }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+        {% for m in row.marks %}<td>{% if m is not None %}{{ m }}{% else %}—{% endif %}</td>{% endfor %}
+        <td>{% if row.regular_avg is not None %}{{ row.regular_avg }}{% else %}—{% endif %}</td>
+        <td class="fw-600">{% if row.regular_converted is not None %}{{ row.regular_converted }}{% else %}—{% endif %}</td>
+        <td>{% if row.assessment_mark is not None %}{{ row.assessment_mark }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
         <td class="fw-700">
           {% if row.final_score is not None %}
             {{ row.final_score }}
@@ -42,7 +44,7 @@
           {% else %}—{% endif %}
         </td>
       </tr>
-      {% empty %}<tr><td colspan="12" class="text-center py-5 text-muted">No data found.</td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="14" class="text-center py-5 text-muted">No data found.</td></tr>{% endfor %}
     </tbody>
   </table>
 </div></div>

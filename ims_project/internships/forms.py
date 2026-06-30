@@ -5,7 +5,11 @@ from accounts.models import User
 class InternshipRecordForm(forms.ModelForm):
     class Meta:
         model = InternshipRecord
-        fields = ['student','organisation','internship_type','internship_number','related_semester','academic_phase','start_date','end_date','mode','nature_of_work','certificate','report','completion_status','remarks']
+        fields = ['student','organisation','internship_type','internship_number','related_semester',
+                  'academic_phase','reporting_officer_name','reporting_officer_contact','reporting_officer_email',
+                  'start_date','end_date','mode','nature_of_work',
+                  'stipend_received','stipend_amount','student_remarks',
+                  'certificate','report','completion_status','remarks']
         widgets = {
             'start_date': forms.DateInput(attrs={'type':'date','class':'form-control'}),
             'end_date': forms.DateInput(attrs={'type':'date','class':'form-control'}),
@@ -34,7 +38,7 @@ class MentorAssignmentForm(forms.ModelForm):
 class VerificationForm(forms.ModelForm):
     class Meta:
         model = InternshipRecord
-        fields = ['verification_status','remarks']
+        fields = ['verification_status','faculty_remarks','remarks']
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for f in self.fields.values():

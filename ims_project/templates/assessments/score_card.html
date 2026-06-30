@@ -11,7 +11,8 @@
 </style>
 {% endblock %}
 {% block content %}
-<div class="d-flex justify-content-end mb-3 no-print">
+<div class="d-flex justify-content-end gap-2 mb-3 no-print">
+  <a href="{% url 'student_score_card_pdf' student.pk %}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</a>
   <button onclick="window.print()" class="btn btn-navy"><i class="bi bi-printer me-1"></i>Print</button>
 </div>
 
@@ -19,7 +20,7 @@
   <div class="card-body p-4">
     <div class="text-center mb-4 pb-3 border-bottom">
       <h5 class="fw-700 mb-0" style="color:#1e3a5f;">Internship Management &amp; Assessment System</h5>
-      <div class="text-muted">Final Consolidated Internship Score Card</div>
+      <div class="text-muted">Final Internship Marks — Score Card</div>
     </div>
 
     <table class="table table-borderless mb-4" style="font-size:.9rem;">
@@ -30,14 +31,14 @@
       <tr><td class="text-muted">Degree Period</td><td>{{ student.degree_start_date }} — {{ student.degree_end_date }}</td></tr>
     </table>
 
-    <h6 class="fw-700 mb-2" style="color:#1e3a5f;">Regular Internships (Best 7 of 8 Considered)</h6>
+    <h6 class="fw-700 mb-2" style="color:#1e3a5f;">Regular Internships — Totals out of 100 (Best 7 of 8 Considered)</h6>
     <table class="table table-bordered table-sm mb-4" style="font-size:.85rem;">
       <thead class="table-light"><tr><th>#</th>
         {% for row in result.regular_marks %}<th>{{ row.number }}</th>{% endfor %}
       </tr></thead>
       <tbody>
-        <tr><td class="fw-600">Viva Mark</td>
-        {% for row in result.regular_marks %}<td>{% if row.mark %}{{ row.mark }}{% else %}—{% endif %}</td>{% endfor %}
+        <tr><td class="fw-600">Total</td>
+        {% for row in result.regular_marks %}<td>{% if row.mark is not None %}{{ row.mark }}{% else %}—{% endif %}</td>{% endfor %}
         </tr>
       </tbody>
     </table>
@@ -45,28 +46,32 @@
     <table class="table table-bordered mb-4" style="font-size:.9rem;">
       <tbody>
         <tr>
-          <td class="fw-500">Best 7 of 8 Regular Internship Average</td>
-          <td class="text-end fw-700">{% if result.regular_avg %}{{ result.regular_avg }} / 100{% else %}—{% endif %}</td>
-          <td class="text-muted text-end" style="width:90px;">Weight 70%</td>
+          <td class="fw-500">Step 1–3: Best 7 of 8 Total ÷ 7 = Average</td>
+          <td class="text-end fw-700">{% if result.regular_avg is not None %}{{ result.regular_avg }} / 100{% else %}—{% endif %}</td>
         </tr>
         <tr>
-          <td class="fw-500">Assessment Internship (5th Year) Viva Mark</td>
-          <td class="text-end fw-700">{% if result.assessment_mark %}{{ result.assessment_mark }} / 100{% else %}Not entered{% endif %}</td>
-          <td class="text-muted text-end">Weight 30%</td>
+          <td class="fw-500">Step 4: Average × 70 / 100 (Regular Internship Component)</td>
+          <td class="text-end fw-700">{% if result.regular_converted is not None %}{{ result.regular_converted }} / 70{% else %}—{% endif %}</td>
+        </tr>
+        <tr>
+          <td class="fw-500">Step 5: Assessment Internship (Worksheet 10 + Viva 5 + Certificate 5 + PPO 10)</td>
+          <td class="text-end fw-700">{% if result.assessment_mark is not None %}{{ result.assessment_mark }} / 30{% else %}Not entered{% endif %}</td>
         </tr>
         <tr class="table-light">
-          <td class="fw-700">Final Consolidated Score</td>
-          <td class="text-end fw-700" style="font-size:1.1rem;color:#1e3a5f;">{% if result.final_score is not None %}{{ result.final_score }} / 100{% else %}—{% endif %}</td>
-          <td class="text-end">
-            {% if result.is_provisional %}<span class="badge bg-warning text-dark">Provisional</span>{% else %}<span class="badge bg-success">Final</span>{% endif %}
+          <td class="fw-700">Final Internship Marks</td>
+          <td class="text-end fw-700" style="font-size:1.1rem;color:#1e3a5f;">
+            {% if result.final_score is not None %}{{ result.final_score }} / 100{% else %}—{% endif %}
+            {% if result.is_provisional %}<span class="badge bg-warning text-dark ms-2" style="font-size:.7rem;">Provisional</span>{% else %}<span class="badge bg-success ms-2" style="font-size:.7rem;">Final</span>{% endif %}
           </td>
         </tr>
       </tbody>
     </table>
 
     <p class="text-muted" style="font-size:.78rem;">
-      Calculation formula: Final Score = 70% × (average of best 7 of 8 regular internship viva marks) + 30% × (assessment internship viva mark).
-      {% if result.is_provisional %}This score is provisional because the assessment internship has not yet been marked; it currently reflects the regular internship average only.{% endif %}
+      Calculation: Best 7 of the 8 regular internship totals (each out of 100) are averaged, then converted to a 70-mark
+      scale (Average × 70 / 100). The 5th-year Assessment Internship is scored directly out of 30. The two are added
+      for the Final Internship Marks out of 100.
+      {% if result.is_provisional %}This score is provisional because the assessment internship has not yet been marked; it currently reflects the regular internship component (out of 70) only.{% endif %}
     </p>
   </div>
 </div>

@@ -37,20 +37,28 @@ class InternshipRecord(models.Model):
     internship_number = models.CharField(max_length=20)
     related_semester = models.CharField(max_length=50, blank=True)
     academic_phase = models.CharField(max_length=50, blank=True)
+    # Reporting Officer — captured per-internship since the same organisation
+    # may assign a different officer for each placement (per SRS Add Internship page)
+    reporting_officer_name = models.CharField(max_length=100, blank=True)
+    reporting_officer_contact = models.CharField(max_length=20, blank=True)
+    reporting_officer_email = models.EmailField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     mode = models.CharField(max_length=10, choices=MODE_CHOICES, default='offline')
     nature_of_work = models.TextField(blank=True)
-    reporting_officer_name = models.CharField(max_length=100, blank=True)
-    reporting_officer_contact = models.CharField(max_length=50, blank=True)
-    reporting_officer_email = models.EmailField(blank=True)
-    stipend = models.CharField(max_length=10, choices=[('Yes', 'Yes'), ('No', 'No')], default='No')
+    # Financial Details (per SRS)
+    stipend_received = models.BooleanField(default=False, verbose_name='Stipend Received')
+    stipend_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # Student Experience (per SRS)
+    student_remarks = models.TextField(blank=True, verbose_name='Student Experience / Remarks')
     certificate = models.FileField(upload_to='internship_certificates/', blank=True, null=True)
     report = models.FileField(upload_to='internship_reports/', blank=True, null=True)
     completion_status = models.CharField(max_length=20, choices=COMPLETION_STATUS, default='pending')
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS, default='draft')
     verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_internships')
     verified_at = models.DateTimeField(null=True, blank=True)
+    # Faculty Remarks shown on the Approval Timeline — distinct from internal admin remarks
+    faculty_remarks = models.TextField(blank=True)
     remarks = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -66,6 +74,26 @@ class InternshipRecord(models.Model):
         if self.start_date and self.end_date:
             return (self.end_date - self.start_date).days
         return 0
+
+    @property
+    def approval_timeline(self):
+        """Maps the internal verification_status onto the simple 3-stage
+        timeline shown on the Internship Detail page: Submitted -> Verified
+        -> Approved (per SRS)."""
+        order = ['draft', 'submitted', 'needs_correction', 'verified',
+                  'marks_entered', 'approved', 'locked', 'rejected']
+        reached_submitted = self.verification_status in (
+            'submitted', 'needs_correction', 'verified', 'marks_entered', 'approved', 'locked'
+        )
+        reached_verified = self.verification_status in ('verified', 'marks_entered', 'approved', 'locked')
+        reached_approved = self.verification_status in ('approved', 'locked')
+        return {
+            'submitted': reached_submitted,
+            'verified': reached_verified,
+            'approved': reached_approved,
+            'rejected': self.verification_status == 'rejected',
+            'needs_correction': self.verification_status == 'needs_correction',
+        }
 
 class MentorAssignment(models.Model):
     LEVEL_CHOICES = [

@@ -6,7 +6,6 @@ from accounts.decorators import not_student
 from students.models import Student, Programme, Batch
 from internships.models import InternshipRecord, MentorAssignment
 from organisations.models import Organisation
-from assessments.models import AssessmentMark
 from assessments.calculations import calculate_student_score
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -57,6 +56,7 @@ def marks_report(request):
             'student': student,
             'marks': marks,
             'regular_avg': result['regular_avg'],
+            'regular_converted': result['regular_converted'],
             'assessment_mark': result['assessment_mark'],
             'final_score': result['final_score'],
             'is_provisional': result['is_provisional'],
@@ -78,6 +78,8 @@ def org_report(request):
 @login_required
 @not_student
 def mentor_report(request):
+    """Per SRS this is the 'Faculty Coordinator' assignment report — the
+    existing 'faculty_mentor' role plays the Coordinator part."""
     from accounts.models import User
     mentors = User.objects.filter(role='faculty_mentor')
     data = []
@@ -92,10 +94,15 @@ def mentor_report(request):
 @login_required
 @not_student
 def pending_report(request):
-    pending_marks = InternshipRecord.objects.filter(
-        verification_status='verified',
-        assessment_mark__isnull=True
-    ).select_related('student','organisation')
+    # An internship is "pending marks" if it's verified but has no marks
+    # row yet, or its marks row is incomplete (some component still blank).
+    verified_records = InternshipRecord.objects.filter(
+        verification_status='verified'
+    ).select_related('student', 'organisation')
+    pending_marks = [
+        r for r in verified_records
+        if not hasattr(r, 'marks') or not r.marks.is_complete
+    ]
     pending_docs = InternshipRecord.objects.filter(
         Q(certificate='')|Q(certificate__isnull=True)
     ).select_related('student').filter(completion_status='completed')[:50]
@@ -123,7 +130,7 @@ def export_marks_excel(request):
 
     headers = (['Register No', 'Name', 'Programme', 'Batch']
                + [f'Intern {i}' for i in range(1, 9)]
-               + ['Best 7 Avg (70%)', 'Assessment Mark (30%)', 'Final Score', 'Provisional?', 'Status'])
+               + ['Best 7 Avg (/100)', 'Regular Component (/70)', 'Assessment (/30)', 'Final Score (/100)', 'Provisional?', 'Status'])
     for col, h in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=h)
         cell.font = header_font
@@ -143,10 +150,11 @@ def export_marks_excel(request):
             ws.cell(row=row_num, column=5 + i, value=mark)
 
         ws.cell(row=row_num, column=13, value=result['regular_avg'])
-        ws.cell(row=row_num, column=14, value=result['assessment_mark'])
-        ws.cell(row=row_num, column=15, value=result['final_score'])
-        ws.cell(row=row_num, column=16, value='Yes' if result['is_provisional'] else 'No')
-        ws.cell(row=row_num, column=17, value=student.get_status_display())
+        ws.cell(row=row_num, column=14, value=result['regular_converted'])
+        ws.cell(row=row_num, column=15, value=result['assessment_mark'])
+        ws.cell(row=row_num, column=16, value=result['final_score'])
+        ws.cell(row=row_num, column=17, value='Yes' if result['is_provisional'] else 'No')
+        ws.cell(row=row_num, column=18, value=student.get_status_display())
 
     for col in ws.columns:
         ws.column_dimensions[col[0].column_letter].width = 14
@@ -154,7 +162,7 @@ def export_marks_excel(request):
     # Add a note row explaining the formula
     note_row = students.count() + 3
     ws.cell(row=note_row, column=1,
-            value="Final Score = 70% x (Best 7 of 8 regular internship average) + 30% x (assessment internship viva mark)")
+            value="Final Score = (Best 7 of 8 regular internship average x 70/100) + Assessment Internship marks (out of 30)")
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="marks_report.xlsx"'

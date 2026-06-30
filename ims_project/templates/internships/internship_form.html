@@ -15,7 +15,12 @@
       {% endfor %}
     </div>
     <div class="mt-4 d-flex gap-2">
-      <button type="submit" class="btn btn-navy">Save Internship Record</button>
+      {% if record %}
+      <button type="submit" class="btn btn-navy">Save Changes</button>
+      {% else %}
+      <button type="submit" name="save_draft" class="btn btn-outline-secondary">Save Draft</button>
+      <button type="submit" name="submit_internship" class="btn btn-navy">Submit</button>
+      {% endif %}
       <a href="{% url 'internship_list' %}" class="btn btn-outline-secondary">Cancel</a>
     </div>
   </form>

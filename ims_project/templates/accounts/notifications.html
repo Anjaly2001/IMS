@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Notifications</span>{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-body p-0">
+    {% for item in items %}
+    <a href="{% url item.url_name item.url_pk %}" class="d-flex align-items-start gap-3 p-3 text-decoration-none text-dark {% if not forloop.last %}border-bottom{% endif %}">
+      <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+        background:{% if item.level == 'warning' %}#fffbeb{% elif item.level == 'danger' %}#fff5f5{% elif item.level == 'success' %}#f0fff4{% else %}#ebf4ff{% endif %};">
+        <i class="bi {{ item.icon }}" style="color:{% if item.level == 'warning' %}#c05621{% elif item.level == 'danger' %}#c53030{% elif item.level == 'success' %}#276749{% else %}#1e3a5f{% endif %};"></i>
+      </div>
+      <div style="font-size:.875rem;">{{ item.text }}</div>
+    </a>
+    {% empty %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-check2-circle" style="font-size:2rem;"></i>
+      <p class="mt-2 mb-0">You're all caught up — no pending notifications.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

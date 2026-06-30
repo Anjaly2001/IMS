@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Import Students{% endblock %}
+{% block page_title %}Import Students from Excel/CSV{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'student_list' %}" class="breadcrumb-link">Students</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Import</span>{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Upload File</div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Excel (.xlsx) or CSV file</label>
+            <input type="file" name="import_file" accept=".xlsx,.csv" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-navy"><i class="bi bi-upload me-1"></i>Import</button>
+          <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+      </div>
+    </div>
+
+    {% if results %}
+    <div class="card mt-3">
+      <div class="card-header">Import Results</div>
+      <div class="card-body">
+        <p class="text-success fw-600">{{ results.created|length }} student(s) created</p>
+        {% if results.skipped %}
+        <p class="text-warning fw-600 mb-1">{{ results.skipped|length }} skipped (already exist)</p>
+        <ul style="font-size:.82rem;">{% for s in results.skipped %}<li>{{ s }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% if results.row_errors %}
+        <p class="text-danger fw-600 mb-1">{{ results.row_errors|length }} row error(s)</p>
+        <ul style="font-size:.82rem;">{% for e in results.row_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Required Column Format</div>
+      <div class="card-body">
+        <p class="text-muted" style="font-size:.85rem;">
+          The first row must contain these column headers (case-insensitive).
+          <code>programme_code</code> and <code>batch_name</code> must already exist
+          in the system — add them under Students &gt; Programmes / Batches first.
+        </p>
+        <table class="table table-sm table-bordered" style="font-size:.78rem;">
+          <thead class="table-light"><tr><th>Column</th><th>Required</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><code>register_number</code></td><td>Yes</td><td>2024BALLB001</td></tr>
+            <tr><td><code>name</code></td><td>Yes</td><td>Aarav Patel</td></tr>
+            <tr><td><code>email</code></td><td>No</td><td>aarav@student.edu</td></tr>
+            <tr><td><code>mobile</code></td><td>No</td><td>9876543210</td></tr>
+            <tr><td><code>programme_code</code></td><td>Yes</td><td>BALLB</td></tr>
+            <tr><td><code>batch_name</code></td><td>Yes</td><td>2024-2029</td></tr>
+            <tr><td><code>degree_start_date</code></td><td>Yes</td><td>2024-07-01</td></tr>
+            <tr><td><code>degree_end_date</code></td><td>Yes</td><td>2029-05-31</td></tr>
+            <tr><td><code>status</code></td><td>No (defaults to active)</td><td>active</td></tr>
+          </tbody>
+        </table>
+        <p class="text-muted mb-0" style="font-size:.78rem;">Rows with a register number that already exists are skipped, not overwritten.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

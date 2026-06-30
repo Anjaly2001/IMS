@@ -5,33 +5,69 @@
 {% block content %}
 {% if role == 'system_admin' %}
 <!-- Admin Dashboard -->
+<!-- KPI Cards: Students / Internships / Marks / Organisations (per SRS) -->
 <div class="row g-3 mb-4">
-  <div class="col-6 col-lg-3">
+  <div class="col-md-6 col-lg-3">
     <div class="stat-card" style="background:linear-gradient(135deg,#1e3a5f,#2d5282);">
-      <div class="stat-value">{{ total_students|default:0 }}</div>
-      <div class="stat-label">Active Students</div>
+      <div class="stat-label mb-2">Students</div>
+      <div class="d-flex justify-content-between">
+        <div><div class="stat-value">{{ total_students|default:0 }}</div><div class="stat-label">Total</div></div>
+        <div><div class="stat-value">{{ active_students|default:0 }}</div><div class="stat-label">Active</div></div>
+      </div>
       <i class="bi bi-people stat-icon"></i>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
+  <div class="col-md-6 col-lg-3">
     <div class="stat-card" style="background:linear-gradient(135deg,#276749,#38a169);">
-      <div class="stat-value">{{ completed_internships|default:0 }}</div>
-      <div class="stat-label">Completed Internships</div>
-      <i class="bi bi-check-circle stat-icon"></i>
+      <div class="stat-label mb-2">Internships</div>
+      <div class="d-flex justify-content-between">
+        <div><div class="stat-value">{{ total_internships|default:0 }}</div><div class="stat-label">Total</div></div>
+        <div><div class="stat-value">{{ pending_verification|default:0 }}</div><div class="stat-label">Pending</div></div>
+        <div><div class="stat-value">{{ approved_internships|default:0 }}</div><div class="stat-label">Approved</div></div>
+      </div>
+      <i class="bi bi-briefcase stat-icon"></i>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
+  <div class="col-md-6 col-lg-3">
     <div class="stat-card" style="background:linear-gradient(135deg,#c05621,#ed8936);">
-      <div class="stat-value">{{ pending_internships|default:0 }}</div>
-      <div class="stat-label">Pending Internships</div>
-      <i class="bi bi-hourglass-split stat-icon"></i>
+      <div class="stat-label mb-2">Marks</div>
+      <div class="d-flex justify-content-between">
+        <div><div class="stat-value">{{ pending_marks|default:0 }}</div><div class="stat-label">Pending</div></div>
+        <div><div class="stat-value">{{ completed_marks|default:0 }}</div><div class="stat-label">Completed</div></div>
+      </div>
+      <i class="bi bi-clipboard-data stat-icon"></i>
     </div>
   </div>
-  <div class="col-6 col-lg-3">
+  <div class="col-md-6 col-lg-3">
     <div class="stat-card" style="background:linear-gradient(135deg,#553c9a,#805ad5);">
-      <div class="stat-value">{{ total_orgs|default:0 }}</div>
-      <div class="stat-label">Organisations</div>
+      <div class="stat-label mb-2">Organisations</div>
+      <div class="d-flex justify-content-between">
+        <div><div class="stat-value">{{ total_orgs|default:0 }}</div><div class="stat-label">Total</div></div>
+        <div><div class="stat-value">{{ active_orgs|default:0 }}</div><div class="stat-label">Active</div></div>
+      </div>
       <i class="bi bi-building stat-icon"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Charts: Internship Completion / Marks Analysis / Pending Activities (per SRS) -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">Internship Completion by Year</div>
+      <div class="card-body"><canvas id="completionChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">Marks Analysis</div>
+      <div class="card-body"><canvas id="marksAnalysisChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-3">
+    <div class="card h-100">
+      <div class="card-header">Pending Activities</div>
+      <div class="card-body"><canvas id="pendingChart" height="220"></canvas></div>
     </div>
   </div>
 </div>
@@ -209,5 +245,56 @@
 
 {% else %}
 <div class="alert alert-info">Welcome to the Internship Management System.</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if role == 'system_admin' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const completionData = {{ completion_by_year_json|default:"[]"|safe }};
+  const marksData = {{ marks_analysis_json|default:"{}"|safe }};
+  const pendingData = {{ pending_activities_json|default:"{}"|safe }};
+
+  new Chart(document.getElementById('completionChart'), {
+    type: 'bar',
+    data: {
+      labels: completionData.map(d => d.year),
+      datasets: [
+        { label: 'Completed', data: completionData.map(d => d.completed), backgroundColor: '#38a169' },
+        { label: 'Total', data: completionData.map(d => d.total), backgroundColor: '#cbd5e1' },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('marksAnalysisChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Average', 'Highest', 'Lowest'],
+      datasets: [{
+        data: [marksData.average || 0, marksData.highest || 0, marksData.lowest || 0],
+        backgroundColor: ['#1e3a5f', '#38a169', '#ed8936'],
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('pendingChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending Verification', 'Pending Marks', 'Pending Approvals'],
+      datasets: [{
+        data: [
+          pendingData.pending_verification || 0,
+          pendingData.pending_marks || 0,
+          pendingData.pending_approvals || 0,
+        ],
+        backgroundColor: ['#ed8936', '#c05621', '#805ad5'],
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+</script>
 {% endif %}
 {% endblock %}

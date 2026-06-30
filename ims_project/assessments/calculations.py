@@ -1,100 +1,115 @@
 """
-Marks calculation logic for the Internship Management System.
+Final Year Calculation Engine — implements the exact 5-step process from
+the SRS:
 
-Default departmental formula (configurable in principle, hard-coded here per
-the project's current scope):
+    Step 1: Take Internship 1-8 (the 8 regular internships, each out of 100
+            via Worksheet 40 + Viva 40 + Certificate 20)
+    Step 2: Pick the Best 7 scores automatically
+    Step 3: Calculate the average — Best 7 Total / 7
+    Step 4: Convert to 70 marks — Average x 70 / 100
+    Step 5: Add the Assessment Internship score (out of 30, via
+            Worksheet 10 + Viva 5 + Certificate 5 + PPO 10)
 
-    Regular Internship Score  = average of BEST 7 of the 8 regular
-                                 internship viva marks (out of 100 each)
-    Assessment Internship Score = viva mark of the 5th-year assessment
-                                 internship (out of 100)
-    Final Consolidated Score  = 0.70 * Regular Internship Score
-                               + 0.30 * Assessment Internship Score
+    Regular Internship Component (70) + Assessment Internship (30)
+        = Final Internship Marks (100)
 
-If the assessment internship has not been completed/marked yet, the final
-score falls back to the Regular Internship Score alone (flagged as
-"provisional") so reports remain useful before the 5th year.
+If the assessment internship hasn't been marked yet, the result is flagged
+"provisional" and only the regular-internship component (out of 70) is
+shown, so reports remain meaningful before the 5th year.
 """
 from internships.models import InternshipRecord
-from assessments.models import AssessmentMark
+from assessments.models import InternshipMarks
 
-REGULAR_WEIGHT = 0.70
-ASSESSMENT_WEIGHT = 0.30
 BEST_N = 7
 TOTAL_REGULAR = 8
+REGULAR_MAX_RAW = 100      # each regular internship is scored out of 100
+REGULAR_CONVERTED_MAX = 70  # converted onto a 70-mark scale
+ASSESSMENT_MAX = 30         # assessment internship is scored out of 30 directly
 
 
-def get_viva_mark(internship_record):
-    """Return the float viva mark for an internship record, or None."""
-    viva = AssessmentMark.objects.filter(
-        internship_record=internship_record, assessment_type='viva'
-    ).order_by('-assessment_date', '-id').first()
-    if viva:
-        return float(viva.marks_awarded)
-    return None
+def get_total_marks(internship_record):
+    """Return the auto-calculated total (float) for an internship's marks
+    row, or None if marks haven't been (fully) entered yet."""
+    try:
+        marks = internship_record.marks
+    except InternshipMarks.DoesNotExist:
+        return None
+    return marks.total
 
 
 def calculate_student_score(student):
     """
-    Compute the full marks breakdown for a student.
-    - Regular score = Worksheet (40) + Viva (40) + Certificate (20) = 100
-    - Best 7 scores of 8 regular internships are averaged
-    - Converted to 70 marks (avg * 70 / 100)
-    - Assessment Internship = Worksheet (10) + Viva (5) + Certificate (5) + PPO (10) = 30
-    - Final Consolidated Score = Regular Component (70) + Assessment Component (30) = 100
+    Compute the full Final Year Calculation breakdown for a student,
+    following the SRS's 5-step engine exactly.
+
+    Returns a dict:
+        regular_marks: list of {internship, number, mark} for all 8 regular internships
+        best7: list of the best 7 raw marks (out of 100 each) actually used
+        best7_total: sum of the best 7 raw marks
+        regular_avg: Best 7 Total / 7 (Step 3) — out of 100
+        regular_converted: Average x 70 / 100 (Step 4) — out of 70
+        regular_count: how many regular internships have completed marks
+        assessment_mark: float (out of 30) or None (Step 5 input)
+        assessment_internship: the InternshipRecord or None
+        final_score: Regular Component (70) + Assessment (30) — out of 100
+        is_provisional: True if the assessment internship mark is missing
+        complete: True if all 8 regular internships + assessment internship are fully marked
     """
-    regular_records = InternshipRecord.objects.filter(
+    regular_qs = InternshipRecord.objects.filter(
         student=student, internship_type='regular'
-    ).select_related('assessment_mark').order_by('internship_number')
+    ).order_by('internship_number')
 
     regular_marks = []
     numeric_marks = []
-    for record in regular_records:
-        mark = None
-        if hasattr(record, 'assessment_mark') and record.assessment_mark:
-            mark = float(record.assessment_mark.total_marks)
-            numeric_marks.append(mark)
+    for record in regular_qs:
+        mark = get_total_marks(record)
         regular_marks.append({
             'internship': record,
             'number': record.internship_number,
             'mark': mark,
         })
+        if mark is not None:
+            numeric_marks.append(mark)
 
     regular_count = len(numeric_marks)
-    best_marks = sorted(numeric_marks, reverse=True)[:7]
-    
-    if best_marks:
-        regular_avg = sum(best_marks) / len(best_marks)
-        regular_70_comp = regular_avg * 0.70
-    else:
-        regular_avg = None
-        regular_70_comp = 0.0
 
-    # Assessment (5th-year) internship
+    # Step 2: Pick the best 7 automatically (or fewer, if fewer are entered
+    # so far — partial data still shows a sensible in-progress average)
+    best_marks = sorted(numeric_marks, reverse=True)[:BEST_N]
+    best7_total = round(sum(best_marks), 2) if best_marks else None
+
+    # Step 3: Calculate the average — Best 7 Total / 7
+    # (divides by the count actually available when fewer than 7 marks
+    # exist yet, so an in-progress average isn't artificially dragged down)
+    regular_avg = round(best7_total / len(best_marks), 2) if best_marks else None
+
+    # Step 4: Convert to 70 marks — Average x 70 / 100
+    regular_converted = round(regular_avg * REGULAR_CONVERTED_MAX / REGULAR_MAX_RAW, 2) if regular_avg is not None else None
+
+    # Step 5: Assessment Internship (5th year, out of 30 directly)
     assessment_record = InternshipRecord.objects.filter(
         student=student, internship_type='assessment'
-    ).select_related('assessment_mark').order_by('-start_date').first()
+    ).order_by('-start_date').first()
+    assessment_mark = get_total_marks(assessment_record) if assessment_record else None
 
-    assessment_mark = None
-    if assessment_record and hasattr(assessment_record, 'assessment_mark') and assessment_record.assessment_mark:
-        assessment_mark = float(assessment_record.assessment_mark.total_marks)
-
-    is_provisional = (assessment_mark is None)
-    if regular_avg is None:
+    is_provisional = assessment_mark is None
+    if regular_converted is None:
         final_score = None
     elif is_provisional:
-        # Before assessment, final score defaults to regular avg
-        final_score = round(regular_avg, 2)
+        # Not yet eligible for full consolidation — show the regular
+        # component alone (out of 70) so it's clear it's partial
+        final_score = regular_converted
     else:
-        final_score = round(regular_70_comp + assessment_mark, 2)
+        final_score = round(regular_converted + assessment_mark, 2)
 
-    complete = (regular_count >= 8) and (assessment_mark is not None)
+    complete = (regular_count >= TOTAL_REGULAR) and (assessment_mark is not None)
 
     return {
         'regular_marks': regular_marks,
         'best7': best_marks,
-        'regular_avg': round(regular_avg, 2) if regular_avg is not None else None,
-        'regular_70_comp': round(regular_70_comp, 2) if regular_avg is not None else None,
+        'best7_total': best7_total,
+        'regular_avg': regular_avg,
+        'regular_converted': regular_converted,
         'regular_count': regular_count,
         'assessment_mark': assessment_mark,
         'assessment_internship': assessment_record,

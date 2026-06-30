@@ -24,13 +24,25 @@ def system_admin_required(view_func):
     return wrapper
 
 def faculty_required(view_func):
-    """Admins, faculty coordinators, or evaluators — or a superuser."""
+    """Admins, faculty mentors, evaluators, HoD — or a superuser."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         u = request.user
-        if u.is_authenticated and (u.is_admin or u.is_faculty):
+        if u.is_authenticated and (u.is_admin or u.is_faculty or u.is_hod):
             return view_func(request, *args, **kwargs)
         messages.error(request, 'Faculty access required.')
+        return redirect('dashboard')
+    return wrapper
+
+def coordinator_required(view_func):
+    """Faculty Coordinator (or admin/HoD) only — for verify, approve, lock,
+    and edit-marks-after-submission actions per the SRS. Evaluators and
+    Students are blocked even though they may otherwise be 'faculty'."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_coordinator:
+            return view_func(request, *args, **kwargs)
+        messages.error(request, 'Only a Faculty Coordinator can perform this action.')
         return redirect('dashboard')
     return wrapper
 

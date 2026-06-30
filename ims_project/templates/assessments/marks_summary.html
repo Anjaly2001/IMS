@@ -10,7 +10,7 @@
       <small class="text-muted">{{ student.programme.name }} — {{ student.batch.name }}</small>
     </div>
     <div class="text-end">
-      <div class="text-muted" style="font-size:.78rem;">Final Consolidated Score (70:30)</div>
+      <div class="text-muted" style="font-size:.78rem;">Final Internship Marks</div>
       {% if result.final_score is not None %}
         <div class="fw-700" style="font-size:1.75rem;color:#1e3a5f;">{{ result.final_score }}<span style="font-size:1rem;color:#94a3b8;">/100</span></div>
         {% if result.is_provisional %}
@@ -26,23 +26,56 @@
   </div>
 </div>
 
+<!-- 5-Step Calculation Engine breakdown -->
+<div class="card mb-3">
+  <div class="card-header">Final Year Calculation Engine</div>
+  <div class="card-body">
+    <div class="row g-3 text-center">
+      <div class="col">
+        <div class="text-muted" style="font-size:.72rem;">Step 1–2<br>Best 7 Total</div>
+        <div class="fw-700" style="font-size:1.1rem;">{{ result.best7_total|default:"—" }}</div>
+      </div>
+      <div class="col d-flex align-items-center justify-content-center"><i class="bi bi-arrow-right text-muted"></i></div>
+      <div class="col">
+        <div class="text-muted" style="font-size:.72rem;">Step 3<br>÷ 7 = Average</div>
+        <div class="fw-700" style="font-size:1.1rem;">{{ result.regular_avg|default:"—" }}</div>
+      </div>
+      <div class="col d-flex align-items-center justify-content-center"><i class="bi bi-arrow-right text-muted"></i></div>
+      <div class="col">
+        <div class="text-muted" style="font-size:.72rem;">Step 4<br>× 70 / 100</div>
+        <div class="fw-700" style="font-size:1.1rem;color:#276749;">{{ result.regular_converted|default:"—" }}<span class="text-muted" style="font-size:.7rem;">/70</span></div>
+      </div>
+      <div class="col d-flex align-items-center justify-content-center"><i class="bi bi-plus-lg text-muted"></i></div>
+      <div class="col">
+        <div class="text-muted" style="font-size:.72rem;">Step 5<br>Assessment</div>
+        <div class="fw-700" style="font-size:1.1rem;color:#553c9a;">{% if result.assessment_mark is not None %}{{ result.assessment_mark }}{% else %}—{% endif %}<span class="text-muted" style="font-size:.7rem;">/30</span></div>
+      </div>
+      <div class="col d-flex align-items-center justify-content-center"><i class="bi bi-equals text-muted"></i></div>
+      <div class="col">
+        <div class="text-muted" style="font-size:.72rem;">Final</div>
+        <div class="fw-700" style="font-size:1.1rem;color:#1e3a5f;">{{ result.final_score|default:"—" }}<span class="text-muted" style="font-size:.7rem;">/100</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-3 mb-3">
   <div class="col-md-4">
     <div class="card h-100 p-3">
-      <div class="text-muted" style="font-size:.78rem;">Best 7 of 8 — Regular Average</div>
+      <div class="text-muted" style="font-size:.78rem;">Regular Internship Component</div>
       <div class="fw-700" style="font-size:1.4rem;color:#276749;">
-        {% if result.regular_avg %}{{ result.regular_avg }}/100{% else %}—{% endif %}
+        {% if result.regular_converted is not None %}{{ result.regular_converted }}/70{% else %}—{% endif %}
       </div>
-      <div class="text-muted" style="font-size:.78rem;">{{ result.regular_count }} of 8 internships marked · weight 70%</div>
+      <div class="text-muted" style="font-size:.78rem;">{{ result.regular_count }} of 8 internships marked</div>
     </div>
   </div>
   <div class="col-md-4">
     <div class="card h-100 p-3">
       <div class="text-muted" style="font-size:.78rem;">Assessment Internship (5th Year)</div>
       <div class="fw-700" style="font-size:1.4rem;color:#553c9a;">
-        {% if result.assessment_mark %}{{ result.assessment_mark }}/100{% else %}Not yet entered{% endif %}
+        {% if result.assessment_mark is not None %}{{ result.assessment_mark }}/30{% else %}Not yet entered{% endif %}
       </div>
-      <div class="text-muted" style="font-size:.78rem;">weight 30%</div>
+      <div class="text-muted" style="font-size:.78rem;">Worksheet 10 + Viva 5 + Certificate 5 + PPO 10</div>
     </div>
   </div>
   <div class="col-md-4">
@@ -60,14 +93,16 @@
   <div class="card-header">Regular Internships (Best 7 of 8 used for the average)</div>
   <div class="table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>Internship #</th><th>Organisation</th><th>Intermediate Avg</th><th>Final Viva</th><th>Counted in Best 7?</th><th>Status</th></tr></thead>
+      <thead><tr><th>Internship #</th><th>Organisation</th><th>Worksheet</th><th>Viva</th><th>Certificate</th><th>Total /100</th><th>Counted in Best 7?</th><th>Status</th></tr></thead>
       <tbody>
         {% for d in data %}
         <tr class="{% if d.counted_in_best7 %}table-success{% endif %}">
           <td class="fw-600">{{ d.internship.internship_number }}</td>
-          <td>{{ d.internship.organisation.name|truncatechars:30 }}</td>
-          <td>{% if d.intermediate_avg %}{{ d.intermediate_avg|floatformat:1 }}{% else %}—{% endif %}</td>
-          <td>{% if d.mark %}<strong>{{ d.mark }}/100</strong>{% else %}<span class="text-muted">Not entered</span>{% endif %}</td>
+          <td>{{ d.internship.organisation.name|truncatechars:25 }}</td>
+          <td>{% if d.marks_obj %}{{ d.marks_obj.worksheet_marks|default:"—" }}{% else %}—{% endif %}</td>
+          <td>{% if d.marks_obj %}{{ d.marks_obj.viva_marks|default:"—" }}{% else %}—{% endif %}</td>
+          <td>{% if d.marks_obj %}{{ d.marks_obj.certificate_marks|default:"—" }}{% else %}—{% endif %}</td>
+          <td>{% if d.mark %}<strong>{{ d.mark }}</strong>{% else %}<span class="text-muted">Not entered</span>{% endif %}</td>
           <td>
             {% if d.counted_in_best7 %}<span class="badge bg-success"><i class="bi bi-check-lg"></i> Yes</span>
             {% elif d.mark %}<span class="badge bg-secondary">Dropped (lowest)</span>
@@ -78,7 +113,7 @@
             {% else %}<span class="badge bg-light text-dark border">{{ d.internship.get_verification_status_display }}</span>{% endif %}
           </td>
         </tr>
-        {% empty %}<tr><td colspan="6" class="text-center py-5 text-muted">No internship records found.</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="8" class="text-center py-5 text-muted">No internship records found.</td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
@@ -90,7 +125,7 @@
   <div class="card-body" style="font-size:.875rem;">
     <strong>{{ result.assessment_internship.organisation.name }}</strong> —
     {{ result.assessment_internship.start_date }} to {{ result.assessment_internship.end_date }}
-    {% if result.assessment_mark %}— Viva: <strong>{{ result.assessment_mark }}/100</strong>{% else %}<span class="text-muted">— Viva marks not yet entered</span>{% endif %}
+    {% if result.assessment_mark is not None %}— Total: <strong>{{ result.assessment_mark }}/30</strong>{% else %}<span class="text-muted">— Marks not yet entered</span>{% endif %}
   </div>
 </div>
 {% else %}

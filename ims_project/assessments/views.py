@@ -2,113 +2,127 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Avg, Sum
-from .models import AssessmentMark, MarkEditHistory
-from .forms import AssessmentMarkForm
+from .models import InternshipMarks, MarkEditHistory
+from .forms import InternshipMarksForm, MarksApprovalForm
 from .calculations import calculate_student_score
 from internships.models import InternshipRecord
-from accounts.decorators import not_student
+from accounts.decorators import not_student, coordinator_required
 from accounts.models import ActivityLog
 
+
 @login_required
 @not_student
-def mark_create(request, internship_pk):
+def marks_entry(request, internship_pk):
+    """
+    Evaluator marks entry (per SRS: 'Open Student -> Enter Marks -> Submit
+    -> Cannot Edit'). Creates the InternshipMarks row on first save. Once
+    status has moved past 'draft', only a Coordinator can edit (handled
+    by the is_locked_for_evaluator check below — see marks_review for the
+    Coordinator-side edit path).
+    """
     record = get_object_or_404(InternshipRecord, pk=internship_pk)
     if record.verification_status == 'locked':
-        messages.error(request, 'Marks are locked for this internship.')
+        messages.error(request, 'This internship record is locked.')
         return redirect('internship_detail', pk=internship_pk)
-    
-    # Check if marks already exist
-    existing = getattr(record, 'assessment_mark', None)
-    if existing:
-        return redirect('mark_edit', pk=existing.pk)
 
-    form = AssessmentMarkForm(request.POST or None, internship_record=record)
-    if request.method == 'POST' and form.is_valid():
-        mark = form.save(commit=False)
-        mark.internship_record = record
-        mark.evaluator = request.user
-        
-        # If user is evaluator, submit marks direct to submitted state (cannot edit again)
-        if request.user.role == 'faculty_evaluator':
-            mark.status = 'submitted'
-            record.verification_status = 'marks_entered'
-        else:
-            # Administrators or Coordinators can choose draft or approved
-            mark.status = 'approved' if 'approve' in request.POST else 'draft'
-            record.verification_status = 'approved' if mark.status == 'approved' else 'marks_entered'
-            
-        mark.save()
-        record.save(update_fields=['verification_status'])
-        
-        ActivityLog.objects.create(
-            user=request.user, 
-            action='Entered marks', 
-            module='Assessments', 
-            record_id=str(mark.pk), 
-            new_value=f'Total: {mark.total_marks}'
-        )
-        messages.success(request, 'Marks saved successfully.')
+    marks, _ = InternshipMarks.objects.get_or_create(
+        internship_record=record, defaults={'evaluator': request.user}
+    )
+
+    # Evaluators cannot edit once they've submitted (per SRS). Coordinators
+    # (and admins/HoD) can still come in and edit via marks_review.
+    if marks.status != 'draft' and not request.user.is_coordinator:
+        messages.error(request, 'These marks have been submitted and can no longer be edited. Contact your Faculty Coordinator for changes.')
         return redirect('internship_detail', pk=internship_pk)
-        
-    return render(request, 'assessments/mark_form.html', {'form': form, 'record': record, 'title': 'Add Assessment Marks'})
 
-@login_required
-@not_student
-def mark_edit(request, pk):
-    mark = get_object_or_404(AssessmentMark, pk=pk)
-    # Check evaluator restriction: cannot edit after submission
-    if request.user.role == 'faculty_evaluator' and mark.status != 'draft':
-        messages.error(request, 'You cannot edit marks after submission.')
-        return redirect('internship_detail', pk=mark.internship_record.pk)
-    
-    if mark.status == 'locked':
-        messages.error(request, 'These marks are locked.')
-        return redirect('internship_detail', pk=mark.internship_record.pk)
-        
-    old_marks = mark.total_marks
-    form = AssessmentMarkForm(request.POST or None, instance=mark, internship_record=mark.internship_record)
+    form = InternshipMarksForm(request.POST or None, instance=marks, internship_record=record)
     if request.method == 'POST' and form.is_valid():
         m = form.save(commit=False)
-        
-        if request.user.role == 'faculty_evaluator':
+        m.evaluator = request.user
+        if 'submit_marks' in request.POST:
             m.status = 'submitted'
+            record.verification_status = 'marks_entered'
+            record.save(update_fields=['verification_status'])
+            success_msg = 'Marks submitted. You will not be able to edit them further.'
+            action = 'Submitted marks'
         else:
-            if 'approve' in request.POST:
-                m.status = 'approved'
-                m.internship_record.verification_status = 'approved'
-                m.internship_record.save(update_fields=['verification_status'])
-            elif 'lock' in request.POST:
-                m.status = 'locked'
-                m.internship_record.verification_status = 'locked'
-                m.internship_record.save(update_fields=['verification_status'])
-                
-        if m.total_marks != old_marks:
-            MarkEditHistory.objects.create(
-                assessment=mark, 
-                edited_by=request.user, 
-                old_marks=old_marks, 
-                new_marks=m.total_marks,
-                reason=request.POST.get('reason', 'Updated marks')
-            )
+            m.status = 'draft'
+            success_msg = 'Marks saved as draft.'
+            action = 'Saved marks draft'
         m.save()
-        messages.success(request, 'Marks updated.')
-        return redirect('internship_detail', pk=mark.internship_record.pk)
-        
-    return render(request, 'assessments/mark_form.html', {'form': form, 'mark': mark, 'title': 'Edit Marks'})
+        ActivityLog.objects.create(
+            user=request.user, action=action, module='Assessments',
+            record_id=str(m.pk), new_value=f'{m.total}/{m.max_total}'
+        )
+        messages.success(request, success_msg)
+        return redirect('internship_detail', pk=internship_pk)
+
+    return render(request, 'assessments/marks_entry.html', {
+        'form': form, 'record': record, 'marks': marks,
+        'title': 'Marks Entry',
+    })
+
 
 @login_required
-@not_student
-def mark_lock(request, pk):
-    mark = get_object_or_404(AssessmentMark, pk=pk)
-    if request.method == 'POST':
-        mark.status = 'locked'
-        mark.save()
-        record = mark.internship_record
-        record.verification_status = 'locked'
-        record.save(update_fields=['verification_status'])
-        ActivityLog.objects.create(user=request.user, action='Locked marks', module='Assessments', record_id=str(pk))
-        messages.success(request, 'Marks locked.')
-    return redirect('internship_detail', pk=mark.internship_record.pk)
+@coordinator_required
+def marks_review(request, pk):
+    """
+    Faculty Coordinator review (per SRS: 'Open Student -> Review Marks ->
+    Edit Marks -> Approve -> Lock'). This is the only path that can edit
+    marks once an Evaluator has submitted them.
+    """
+    marks = get_object_or_404(InternshipMarks, pk=pk)
+    if marks.status == 'locked':
+        messages.error(request, 'These marks are locked.')
+        return redirect('internship_detail', pk=marks.internship_record.pk)
+
+    old_values = {
+        'worksheet_marks': marks.worksheet_marks,
+        'viva_marks': marks.viva_marks,
+        'certificate_marks': marks.certificate_marks,
+        'ppo_marks': marks.ppo_marks,
+    }
+    form = MarksApprovalForm(request.POST or None, instance=marks)
+    if request.method == 'POST' and form.is_valid():
+        m = form.save(commit=False)
+
+        for field, old_value in old_values.items():
+            new_value = getattr(m, field, None)
+            if old_value != new_value:
+                MarkEditHistory.objects.create(
+                    marks=marks, edited_by=request.user, field_changed=field,
+                    old_value=old_value, new_value=new_value,
+                )
+
+        if 'approve' in request.POST:
+            m.status = 'approved'
+            m.approved_by = request.user
+            from django.utils import timezone
+            m.approved_at = timezone.now()
+            success_msg = 'Marks approved.'
+        elif 'lock' in request.POST:
+            m.status = 'locked'
+            m.approved_by = request.user
+            from django.utils import timezone
+            m.approved_at = timezone.now()
+            success_msg = 'Marks approved and locked.'
+            m.internship_record.verification_status = 'locked'
+            m.internship_record.save(update_fields=['verification_status'])
+        else:
+            success_msg = 'Marks updated.'
+        m.save()
+
+        ActivityLog.objects.create(
+            user=request.user, action=f'Reviewed marks ({m.get_status_display()})',
+            module='Assessments', record_id=str(m.pk),
+        )
+        messages.success(request, success_msg)
+        return redirect('internship_detail', pk=marks.internship_record.pk)
+
+    return render(request, 'assessments/marks_review.html', {
+        'form': form, 'marks': marks, 'record': marks.internship_record,
+    })
+
 
 @login_required
 @not_student
@@ -117,22 +131,22 @@ def marks_summary(request, student_pk):
     student = get_object_or_404(Student, pk=student_pk)
     result = calculate_student_score(student)
 
-    # Build per-internship display rows, marking which ones counted in "best 7"
+    # Mark which internships' totals counted toward the "best 7"
     best7_sorted = sorted(result['best7'], reverse=True)
-    used_marks_remaining = list(best7_sorted)  # values to "consume" as we match
+    used_marks_remaining = list(best7_sorted)
     data = []
     for row in result['regular_marks']:
         internship = row['internship']
         mark = row['mark']
-        eval_mark = getattr(internship, 'assessment_mark', None)
         counted = False
         if mark is not None and mark in used_marks_remaining:
             counted = True
             used_marks_remaining.remove(mark)
+        marks_obj = getattr(internship, 'marks', None)
         data.append({
             'internship': internship,
             'mark': mark,
-            'eval_mark': eval_mark,
+            'marks_obj': marks_obj,
             'counted_in_best7': counted,
         })
 
@@ -151,3 +165,87 @@ def student_score_card(request, student_pk):
     return render(request, 'assessments/score_card.html', {
         'student': student, 'result': result,
     })
+
+
+@login_required
+@not_student
+def student_score_card_pdf(request, student_pk):
+    """PDF export of the score card, per SRS Reports Module (Excel/PDF export)."""
+    from django.http import HttpResponse
+    from students.models import Student
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet
+
+    student = get_object_or_404(Student, pk=student_pk)
+    result = calculate_student_score(student)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="score_card_{student.register_number}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=A4, topMargin=20 * mm, bottomMargin=20 * mm)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph('Internship Management &amp; Assessment System', styles['Title']))
+    story.append(Paragraph('Final Internship Marks — Score Card', styles['Heading3']))
+    story.append(Spacer(1, 12))
+
+    info_data = [
+        ['Student Name', student.name],
+        ['Register Number', student.register_number],
+        ['Programme', student.programme.name],
+        ['Batch', student.batch.name],
+        ['Degree Period', f'{student.degree_start_date} — {student.degree_end_date}'],
+    ]
+    info_table = Table(info_data, colWidths=[150, 320])
+    info_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.grey),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 16))
+
+    story.append(Paragraph('Regular Internships — Totals out of 100 (Best 7 of 8 Considered)', styles['Heading4']))
+    numbers = [row['number'] for row in result['regular_marks']]
+    marks_row = [row['mark'] if row['mark'] is not None else '—' for row in result['regular_marks']]
+    reg_table = Table([['#'] + numbers, ['Total'] + marks_row])
+    reg_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.whitesmoke),
+    ]))
+    story.append(reg_table)
+    story.append(Spacer(1, 16))
+
+    calc_data = [
+        ['Step 1-3: Best 7 of 8 Total / 7 = Average', f"{result['regular_avg']} / 100" if result['regular_avg'] is not None else '—'],
+        ['Step 4: Average x 70 / 100 (Regular Component)', f"{result['regular_converted']} / 70" if result['regular_converted'] is not None else '—'],
+        ['Step 5: Assessment Internship', f"{result['assessment_mark']} / 30" if result['assessment_mark'] is not None else 'Not entered'],
+        ['Final Internship Marks', f"{result['final_score']} / 100" if result['final_score'] is not None else '—'],
+    ]
+    calc_table = Table(calc_data, colWidths=[320, 150])
+    calc_table.setStyle(TableStyle([
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.whitesmoke),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+    ]))
+    story.append(calc_table)
+    story.append(Spacer(1, 12))
+
+    status_text = 'Provisional — assessment internship pending' if result['is_provisional'] else 'Final'
+    story.append(Paragraph(f'<b>Status:</b> {status_text}', styles['Normal']))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(
+        'Calculation: Best 7 of the 8 regular internship totals (each out of 100) are averaged, then converted '
+        'to a 70-mark scale. The 5th-year Assessment Internship is scored directly out of 30. The two are added '
+        'for the Final Internship Marks out of 100.', styles['Normal']
+    ))
+
+    doc.build(story)
+    return response

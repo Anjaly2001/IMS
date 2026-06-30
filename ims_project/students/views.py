@@ -5,7 +5,7 @@ from django.db.models import Q
 from .models import Student, BreakRecord, Programme, Batch
 from .forms import StudentForm, BreakRecordForm, ProgrammeForm, BatchForm
 from accounts.decorators import admin_required, not_student
-from accounts.models import User, ActivityLog
+from accounts.models import ActivityLog
 
 @login_required
 @not_student
@@ -46,10 +46,10 @@ def student_detail(request, pk):
     internships = student.internship_records.select_related('organisation').order_by('internship_number')
     breaks = student.breaks.all()
     mentors = student.mentor_assignments.select_related('faculty').order_by('-effective_from')
-    from assessments.models import AssessmentMark
+    from assessments.models import InternshipMarks
     from django.db.models import Avg
-    viva_avg = AssessmentMark.objects.filter(
-        internship_record__student=student, classification='regular'
+    viva_avg = InternshipMarks.objects.filter(
+        internship_record__student=student
     ).aggregate(avg=Avg('viva_marks'))['avg']
     return render(request, 'students/student_detail.html', {
         'student': student, 'internships': internships,
@@ -61,27 +61,9 @@ def student_detail(request, pk):
 def student_create(request):
     form = StudentForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        student = form.save(commit=False)
-
-        # Auto-create a User account for the student
-        username = form.cleaned_data['register_number'].strip()
-        if not User.objects.filter(username=username).exists():
-            user = User.objects.create_user(
-                username=username,
-                email=form.cleaned_data.get('email', ''),
-                password=username,  # default password = register number
-                first_name=form.cleaned_data['name'].split()[0] if form.cleaned_data['name'] else '',
-                last_name=' '.join(form.cleaned_data['name'].split()[1:]) if len(form.cleaned_data['name'].split()) > 1 else '',
-                role='student',
-            )
-            student.user = user
-        else:
-            existing_user = User.objects.get(username=username)
-            student.user = existing_user
-
-        student.save()
+        student = form.save()
         ActivityLog.objects.create(user=request.user, action='Created student', module='Students', record_id=str(student.pk), new_value=str(student))
-        messages.success(request, f'Student {student.name} created. Login credentials: Username = {username}, Password = {username} (default).')
+        messages.success(request, f'Student {student.name} created successfully.')
         return redirect('student_list')
     return render(request, 'students/student_form.html', {'form': form, 'title': 'Add Student'})
 
@@ -145,3 +127,107 @@ def batch_create(request):
         messages.success(request, 'Batch created.')
         return redirect('batch_list')
     return render(request, 'students/batch_form.html', {'form': form, 'title': 'Add Batch'})
+
+
+@login_required
+@admin_required
+def student_import(request):
+    """
+    Bulk student upload from Excel (.xlsx) or CSV, per SRS FR-ST-04.
+    Expected columns (case-insensitive header match):
+        register_number, name, email, mobile, programme_code, batch_name,
+        degree_start_date, degree_end_date, status
+    programme_code and batch_name must already exist (created via
+    Students > Programmes / Batches first).
+    """
+    import openpyxl
+    import csv
+    import io
+    from datetime import datetime
+
+    results = None
+    if request.method == 'POST' and request.FILES.get('import_file'):
+        upload = request.FILES['import_file']
+        rows = []
+        errors_reading = []
+
+        try:
+            if upload.name.lower().endswith('.csv'):
+                decoded = io.TextIOWrapper(upload.file, encoding='utf-8-sig')
+                reader = csv.DictReader(decoded)
+                rows = [{(k or '').strip().lower(): (v or '').strip() for k, v in row.items()} for row in reader]
+            else:
+                wb = openpyxl.load_workbook(upload, data_only=True)
+                ws = wb.active
+                header_row = [str(c.value).strip().lower() if c.value else '' for c in ws[1]]
+                for row in ws.iter_rows(min_row=2, values_only=True):
+                    if not any(row):
+                        continue
+                    rows.append({header_row[i]: (str(row[i]).strip() if row[i] is not None else '') for i in range(len(header_row))})
+        except Exception as e:
+            errors_reading.append(f'Could not read the file: {e}')
+
+        created, skipped, row_errors = [], [], []
+
+        def parse_date(value):
+            if not value:
+                return None
+            if isinstance(value, str):
+                for fmt in ('%Y-%m-%d', '%d-%m-%Y', '%d/%m/%Y'):
+                    try:
+                        return datetime.strptime(value, fmt).date()
+                    except ValueError:
+                        continue
+                return None
+            try:
+                return value.date()
+            except AttributeError:
+                return None
+
+        for idx, row in enumerate(rows, start=2):
+            reg_no = row.get('register_number', '')
+            name = row.get('name', '')
+            email = row.get('email', '')
+            if not reg_no or not name:
+                row_errors.append(f'Row {idx}: missing register_number or name — skipped.')
+                continue
+            if Student.objects.filter(register_number=reg_no).exists():
+                skipped.append(f'Row {idx}: {reg_no} already exists — skipped.')
+                continue
+
+            programme = Programme.objects.filter(code__iexact=row.get('programme_code', '')).first()
+            batch = Batch.objects.filter(name__iexact=row.get('batch_name', '')).first()
+            if not programme or not batch:
+                row_errors.append(f'Row {idx}: programme_code or batch_name not found — skipped.')
+                continue
+
+            start = parse_date(row.get('degree_start_date'))
+            end = parse_date(row.get('degree_end_date'))
+            if not start or not end:
+                row_errors.append(f'Row {idx}: invalid or missing degree dates — skipped.')
+                continue
+
+            student = Student.objects.create(
+                register_number=reg_no, name=name, email=email,
+                mobile=row.get('mobile', ''), programme=programme, batch=batch,
+                degree_start_date=start, degree_end_date=end,
+                status=row.get('status', 'active') or 'active',
+            )
+            created.append(reg_no)
+
+        if created:
+            ActivityLog.objects.create(
+                user=request.user, action=f'Bulk-imported {len(created)} students',
+                module='Students', new_value=', '.join(created[:20])
+            )
+
+        results = {
+            'created': created, 'skipped': skipped,
+            'row_errors': row_errors + errors_reading,
+        }
+        if created:
+            messages.success(request, f'{len(created)} student(s) imported successfully.')
+        if not created and not row_errors and not skipped:
+            messages.warning(request, 'No rows were found in the uploaded file.')
+
+    return render(request, 'students/student_import.html', {'results': results})

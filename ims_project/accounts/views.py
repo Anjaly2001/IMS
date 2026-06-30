@@ -1,11 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from .models import User, ActivityLog
-from .forms import LoginForm, UserCreateForm, UserEditForm, StudentPasswordChangeForm
-from .decorators import admin_required
+from .forms import LoginForm, UserCreateForm, UserEditForm
+from .decorators import admin_required, system_admin_required
+
+def _client_ip(request):
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -14,22 +21,26 @@ def login_view(request):
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
+        ActivityLog.objects.create(
+            user=user, action='User login', module='Authentication',
+            ip_address=_client_ip(request),
+        )
         messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
-        # Check if student is using default password (register number)
-        if user.is_student_role and user.check_password(user.username):
-            messages.warning(request, 'Please change your default password for security.')
-            return redirect('change_password')
         return redirect('dashboard')
     return render(request, 'accounts/login.html', {'form': form})
 
 @login_required
 def logout_view(request):
+    ActivityLog.objects.create(
+        user=request.user, action='User logout', module='Authentication',
+        ip_address=_client_ip(request),
+    )
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('login')
 
 @login_required
-@admin_required
+@system_admin_required
 def user_list(request):
     q = request.GET.get('q','')
     role = request.GET.get('role','')
@@ -41,7 +52,7 @@ def user_list(request):
     return render(request, 'accounts/user_list.html', {'users': users, 'q': q, 'role': role, 'roles': User.ROLE_CHOICES})
 
 @login_required
-@admin_required
+@system_admin_required
 def user_create(request):
     form = UserCreateForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -52,7 +63,7 @@ def user_create(request):
     return render(request, 'accounts/user_form.html', {'form': form, 'title': 'Create User'})
 
 @login_required
-@admin_required
+@system_admin_required
 def user_edit(request, pk):
     user = get_object_or_404(User, pk=pk)
     form = UserEditForm(request.POST or None, instance=user)
@@ -70,21 +81,3 @@ def activity_log(request):
 @login_required
 def profile_view(request):
     return render(request, 'accounts/profile.html', {'user_obj': request.user})
-
-@login_required
-def change_password(request):
-    """Password change view — works for all roles but primarily for students."""
-    if request.method == 'POST':
-        form = StudentPasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  # keep the session alive
-            ActivityLog.objects.create(
-                user=request.user, action='Changed password',
-                module='Accounts', record_id=str(user.pk),
-            )
-            messages.success(request, 'Your password has been changed successfully.')
-            return redirect('dashboard')
-    else:
-        form = StudentPasswordChangeForm(request.user)
-    return render(request, 'accounts/change_password.html', {'form': form})

@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Internship {{ record.internship_number }}{% endblock %}
 {% block page_title %}Internship Record{% endblock %}
-{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}"
-  class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{
-  record.student.register_number }} — #{{ record.internship_number }}</span>{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ record.student.register_number }} — #{{ record.internship_number }}</span>{% endblock %}
 {% block content %}
 <div class="row g-3">
   <div class="col-lg-5">
@@ -16,215 +14,141 @@
       </div>
       <div class="card-body">
         <table class="table table-sm mb-0" style="font-size:.875rem;">
-          <tr>
-            <td class="text-muted fw-500">Student</td>
-            <td><a href="{% url 'student_detail' record.student.pk %}">{{ record.student.name }} ({{
-                record.student.register_number }})</a></td>
-          </tr>
-          <tr>
-            <td class="text-muted fw-500">Organisation</td>
-            <td><a href="{% url 'org_detail' record.organisation.pk %}">{{ record.organisation.name }}</a></td>
-          </tr>
-          <tr>
-            <td class="text-muted fw-500">Type</td>
-            <td><span class="badge bg-light text-dark border">{{ record.get_internship_type_display }}</span></td>
-          </tr>
-          <tr>
-            <td class="text-muted fw-500">Period</td>
-            <td>{{ record.start_date }} — {{ record.end_date }}</td>
-          </tr>
-          <tr>
-            <td class="text-muted fw-500">Duration</td>
-            <td>{{ record.duration_days }} days</td>
-          </tr>
-          <tr>
-            <td class="text-muted fw-500">Mode</td>
-            <td>{{ record.get_mode_display }}</td>
-          </tr>
-          {% if record.related_semester %}<tr>
-            <td class="text-muted fw-500">Semester</td>
-            <td>{{ record.related_semester }}</td>
-          </tr>{% endif %}
-          {% if record.nature_of_work %}<tr>
-            <td class="text-muted fw-500">Nature of Work</td>
-            <td>{{ record.nature_of_work }}</td>
-          </tr>{% endif %}
-          <tr>
-            <td class="text-muted fw-500">Completion</td>
-            <td>
-              {% if record.completion_status == 'completed' %}<span class="badge bg-success">Completed</span>
-              {% elif record.completion_status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
-              {% else %}<span class="badge bg-secondary">{{ record.get_completion_status_display }}</span>{% endif %}
-            </td>
-          </tr>
-          <tr>
-            <td class="text-muted fw-500">Verification</td>
-            <td>
-              {% if record.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
-              {% elif record.verification_status == 'submitted' %}<span
-                class="badge bg-warning text-dark">Submitted</span>
-              {% elif record.verification_status == 'locked' %}<span class="badge bg-secondary">Locked</span>
-              {% elif record.verification_status == 'approved' %}<span class="badge bg-primary">Approved</span>
-              {% elif record.verification_status == 'marks_entered' %}<span class="badge bg-info">Marks Entered</span>
-              {% elif record.verification_status == 'needs_correction' %}<span class="badge bg-danger">Needs
-                Correction</span>
-              {% else %}<span class="badge bg-light text-dark border">{{ record.get_verification_status_display
-                }}</span>{% endif %}
-            </td>
-          </tr>
-          {% if record.verified_by %}<tr>
-            <td class="text-muted fw-500">Verified By</td>
-            <td>{{ record.verified_by.get_full_name|default:record.verified_by.username }}</td>
-          </tr>{% endif %}
+          <tr><td class="text-muted fw-500">Student</td><td><a href="{% url 'student_detail' record.student.pk %}">{{ record.student.name }} ({{ record.student.register_number }})</a></td></tr>
+          <tr><td class="text-muted fw-500">Organisation</td><td><a href="{% url 'org_detail' record.organisation.pk %}">{{ record.organisation.name }}</a></td></tr>
+          <tr><td class="text-muted fw-500">Type</td><td><span class="badge bg-light text-dark border">{{ record.get_internship_type_display }}</span></td></tr>
+          <tr><td class="text-muted fw-500">Period</td><td>{{ record.start_date }} — {{ record.end_date }}</td></tr>
+          <tr><td class="text-muted fw-500">Duration</td><td>{{ record.duration_days }} days</td></tr>
+          <tr><td class="text-muted fw-500">Mode</td><td>{{ record.get_mode_display }}</td></tr>
+          {% if record.reporting_officer_name %}<tr><td class="text-muted fw-500">Reporting Officer</td><td>{{ record.reporting_officer_name }}{% if record.reporting_officer_contact %} · {{ record.reporting_officer_contact }}{% endif %}{% if record.reporting_officer_email %}<br><span class="text-muted">{{ record.reporting_officer_email }}</span>{% endif %}</td></tr>{% endif %}
+          {% if record.related_semester %}<tr><td class="text-muted fw-500">Semester</td><td>{{ record.related_semester }}</td></tr>{% endif %}
+          {% if record.nature_of_work %}<tr><td class="text-muted fw-500">Nature of Work</td><td>{{ record.nature_of_work }}</td></tr>{% endif %}
+          <tr><td class="text-muted fw-500">Stipend</td><td>{% if record.stipend_received %}Yes{% if record.stipend_amount %} (₹{{ record.stipend_amount }}){% endif %}{% else %}No{% endif %}</td></tr>
+          <tr><td class="text-muted fw-500">Completion</td><td>
+            {% if record.completion_status == 'completed' %}<span class="badge bg-success">Completed</span>
+            {% elif record.completion_status == 'pending' %}<span class="badge bg-warning text-dark">Pending</span>
+            {% else %}<span class="badge bg-secondary">{{ record.get_completion_status_display }}</span>{% endif %}
+          </td></tr>
+          <tr><td class="text-muted fw-500">Verification</td><td>
+            {% if record.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
+            {% elif record.verification_status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>
+            {% elif record.verification_status == 'locked' %}<span class="badge bg-secondary">Locked</span>
+            {% elif record.verification_status == 'approved' %}<span class="badge bg-primary">Approved</span>
+            {% elif record.verification_status == 'marks_entered' %}<span class="badge bg-info">Marks Entered</span>
+            {% elif record.verification_status == 'needs_correction' %}<span class="badge bg-danger">Needs Correction</span>
+            {% else %}<span class="badge bg-light text-dark border">{{ record.get_verification_status_display }}</span>{% endif %}
+          </td></tr>
+          {% if record.verified_by %}<tr><td class="text-muted fw-500">Verified By</td><td>{{ record.verified_by.get_full_name|default:record.verified_by.username }}</td></tr>{% endif %}
         </table>
       </div>
       <div class="card-footer bg-white d-flex gap-2 flex-wrap">
-        {% if user.role not in 'student' %}
+        {% if user.is_coordinator %}
         <a href="{% url 'internship_verify' record.pk %}" class="btn btn-sm btn-outline-primary">Update Status</a>
-        {% if record.verification_status in 'verified,marks_entered' %}
-        <a href="{% url 'mark_create' record.pk %}" class="btn btn-sm btn-navy">Add Marks</a>
         {% endif %}
+        {% if not user.is_student_role and record.verification_status != 'locked' %}
+          {% if not record.marks %}
+          <a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy">Enter Marks</a>
+          {% endif %}
         {% endif %}
-        {% if record.certificate %}<a href="{{ record.certificate.url }}" class="btn btn-sm btn-outline-success"
-          target="_blank">Certificate</a>{% endif %}
-        {% if record.report %}<a href="{{ record.report.url }}" class="btn btn-sm btn-outline-secondary"
-          target="_blank">Report</a>{% endif %}
+        {% if record.certificate %}<a href="{{ record.certificate.url }}" class="btn btn-sm btn-outline-success" target="_blank">Certificate</a>{% endif %}
+        {% if record.report %}<a href="{{ record.report.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Report</a>{% endif %}
       </div>
     </div>
-    {% if record.remarks %}
+
+    <!-- Approval Timeline (per SRS: Submitted -> Verified -> Approved) -->
+    <div class="card mb-3">
+      <div class="card-header">Approval Timeline</div>
+      <div class="card-body">
+        {% with timeline=record.approval_timeline %}
+        <div class="d-flex justify-content-between align-items-center" style="font-size:.82rem;">
+          <div class="text-center flex-fill">
+            <div class="rounded-circle mx-auto mb-1 d-flex align-items-center justify-content-center {% if timeline.submitted %}bg-success text-white{% else %}bg-light border text-muted{% endif %}" style="width:32px;height:32px;">
+              <i class="bi bi-check-lg"></i>
+            </div>
+            Submitted
+          </div>
+          <div class="flex-fill border-top" style="margin-top:-18px;"></div>
+          <div class="text-center flex-fill">
+            <div class="rounded-circle mx-auto mb-1 d-flex align-items-center justify-content-center {% if timeline.verified %}bg-success text-white{% else %}bg-light border text-muted{% endif %}" style="width:32px;height:32px;">
+              <i class="bi bi-check-lg"></i>
+            </div>
+            Verified
+          </div>
+          <div class="flex-fill border-top" style="margin-top:-18px;"></div>
+          <div class="text-center flex-fill">
+            <div class="rounded-circle mx-auto mb-1 d-flex align-items-center justify-content-center {% if timeline.approved %}bg-success text-white{% else %}bg-light border text-muted{% endif %}" style="width:32px;height:32px;">
+              <i class="bi bi-check-lg"></i>
+            </div>
+            Approved
+          </div>
+        </div>
+        {% if timeline.needs_correction %}<div class="alert alert-warning mt-3 mb-0 py-2" style="font-size:.82rem;">Sent back for correction.</div>{% endif %}
+        {% if timeline.rejected %}<div class="alert alert-danger mt-3 mb-0 py-2" style="font-size:.82rem;">This record was rejected.</div>{% endif %}
+        {% endwith %}
+        {% if record.faculty_remarks %}
+        <div class="mt-3 pt-3 border-top">
+          <div class="text-muted fw-500" style="font-size:.78rem;">Faculty Remarks</div>
+          <p class="mb-0" style="font-size:.875rem;">{{ record.faculty_remarks }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if record.student_remarks or record.remarks %}
     <div class="card">
       <div class="card-header">Remarks</div>
       <div class="card-body">
-        <p class="mb-0" style="font-size:.875rem;">{{ record.remarks }}</p>
+        {% if record.student_remarks %}<p class="mb-2" style="font-size:.875rem;"><span class="text-muted fw-500">Student Experience:</span> {{ record.student_remarks }}</p>{% endif %}
+        {% if record.remarks %}<p class="mb-0" style="font-size:.875rem;">{{ record.remarks }}</p>{% endif %}
       </div>
     </div>
     {% endif %}
   </div>
 
   <div class="col-lg-7">
-    <div class="card shadow-sm border-0">
-      <div class="card-header bg-navy text-white d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-clipboard-data me-2"></i>Assessment Marks</span>
-        {% if user.role != 'student' and record.verification_status != 'locked' %}
-        {% if not assessment_mark %}
-        <a href="{% url 'mark_create' record.pk %}" class="btn btn-sm btn-gold"><i class="bi bi-plus me-1"></i>Add
-          Marks</a>
-        {% else %}
-        {% if user.role == 'faculty_coordinator' or user.is_system_admin %}
-        {% if assessment_mark.status != 'locked' %}
-        <a href="{% url 'mark_edit' assessment_mark.pk %}" class="btn btn-sm btn-gold"><i
-            class="bi bi-pencil me-1"></i>Edit Marks</a>
-        {% endif %}
-        {% elif user.role == 'faculty_evaluator' %}
-        {% if assessment_mark.status == 'draft' %}
-        <a href="{% url 'mark_edit' assessment_mark.pk %}" class="btn btn-sm btn-gold"><i
-            class="bi bi-pencil me-1"></i>Enter/Edit Marks</a>
-        {% endif %}
-        {% endif %}
-        {% endif %}
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clipboard-data me-2"></i>Marks</span>
+        {% if record.marks and user.is_coordinator and record.marks.status != 'locked' %}
+        <a href="{% url 'marks_review' record.marks.pk %}" class="btn btn-sm btn-navy"><i class="bi bi-pencil me-1"></i>Review / Approve</a>
+        {% elif record.marks and not user.is_student_role and record.marks.status == 'draft' %}
+        <a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Continue Entry</a>
         {% endif %}
       </div>
-
-      <div class="card-body p-0">
-        {% if assessment_mark %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead>
-              <tr class="table-light">
-                <th>Evaluation Component</th>
-                <th class="text-center">Marks Awarded</th>
-                <th class="text-center">Maximum Marks</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="fw-semibold">Worksheet Marks</td>
-                <td class="text-center fw-medium">{{ assessment_mark.worksheet_marks }}</td>
-                <td class="text-center">{% if record.internship_type == 'assessment' %}10.00{% else %}40.00{% endif %}
-                </td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">Viva Marks</td>
-                <td class="text-center fw-medium">{{ assessment_mark.viva_marks }}</td>
-                <td class="text-center">{% if record.internship_type == 'assessment' %}5.00{% else %}40.00{% endif %}
-                </td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">Certificate Marks</td>
-                <td class="text-center fw-medium">{{ assessment_mark.certificate_marks }}</td>
-                <td class="text-center">{% if record.internship_type == 'assessment' %}5.00{% else %}20.00{% endif %}
-                </td>
-              </tr>
-              {% if record.internship_type == 'assessment' %}
-              <tr>
-                <td class="fw-semibold text-primary">PPO (Pre-Placement Offer) Marks</td>
-                <td class="text-center fw-semibold text-primary">{{ assessment_mark.ppo_marks }}</td>
-                <td class="text-center">10.00</td>
-              </tr>
-              {% endif %}
-              <tr class="table-group-divider fw-bold bg-light">
-                <td class="text-navy">Total Scores</td>
-                <td class="text-center text-navy font-monospace">{{ assessment_mark.total_marks }}</td>
-                <td class="text-center text-navy font-monospace">{% if record.internship_type == 'assessment' %}30.00{%
-                  else %}100.00{% endif %}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="p-3 border-top bg-light">
-          <div class="row g-2">
-            <div class="col-md-6">
-              <span class="text-muted small d-block">Status</span>
-              <strong class="text-capitalize fs-6">
-                {% if assessment_mark.status == 'locked' %}<span class="badge bg-secondary">Locked</span>
-                {% elif assessment_mark.status == 'approved' %}<span class="badge bg-success">Approved</span>
-                {% elif assessment_mark.status == 'submitted' %}<span class="badge bg-primary">Submitted</span>
-                {% else %}<span class="badge bg-warning text-dark">Draft</span>{% endif %}
-              </strong>
-            </div>
-            <div class="col-md-6">
-              <span class="text-muted small d-block">Evaluated By</span>
-              <strong class="fs-6">{{
-                assessment_mark.evaluator.get_full_name|default:assessment_mark.evaluator.username|default:"N/A"
-                }}</strong>
-            </div>
-          </div>
-          {% if assessment_mark.remarks %}
-          <div class="mt-2 border-top pt-2">
-            <span class="text-muted small d-block">Remarks</span>
-            <p class="mb-0 small text-dark">{{ assessment_mark.remarks }}</p>
-          </div>
-          {% endif %}
-
-          {% if user.role != 'student' and assessment_mark.status != 'locked' %}
-          <div class="mt-3 d-flex gap-2">
-            {% if user.role == 'faculty_coordinator' or user.is_system_admin %}
-            {% if assessment_mark.status == 'submitted' or assessment_mark.status == 'draft' %}
-            <form method="post" action="{% url 'mark_edit' assessment_mark.pk %}" style="display:inline;">{% csrf_token
-              %}
-              <button type="submit" name="approve" class="btn btn-sm btn-success px-3">Approve Marks</button>
-            </form>
+      {% with m=record.marks %}
+      {% if m %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Component</th><th>Marks</th><th>Max</th></tr></thead>
+          <tbody>
+            <tr><td>Worksheet</td><td>{{ m.worksheet_marks|default:"—" }}</td><td>{{ m.max_worksheet }}</td></tr>
+            <tr><td>Viva</td><td>{{ m.viva_marks|default:"—" }}</td><td>{{ m.max_viva }}</td></tr>
+            <tr><td>Certificate</td><td>{{ m.certificate_marks|default:"—" }}</td><td>{{ m.max_certificate }}</td></tr>
+            {% if m.is_assessment_internship %}
+            <tr><td>PPO</td><td>{{ m.ppo_marks|default:"—" }}</td><td>{{ m.max_ppo }}</td></tr>
             {% endif %}
-            {% if assessment_mark.status == 'approved' %}
-            <form method="post" action="{% url 'mark_lock' assessment_mark.pk %}" style="display:inline;">{% csrf_token
-              %}
-              <button type="submit" class="btn btn-sm btn-navy px-3" onclick="return confirm('Lock these marks?')"><i
-                  class="bi bi-lock-fill me-1"></i>Lock Marks</button>
-            </form>
-            {% endif %}
-            {% endif %}
-          </div>
-          {% endif %}
-        </div>
-
-        {% else %}
-        <div class="text-center py-5 text-muted">
-          <i class="bi bi-clipboard-x fs-1 mb-2 d-block"></i>
-          No assessment marks entered yet.
-        </div>
-        {% endif %}
+            <tr class="table-light fw-700"><td>Total</td><td>{{ m.total|default:"—" }}</td><td>{{ m.max_total }}</td></tr>
+          </tbody>
+        </table>
       </div>
+      <div class="card-body py-2 border-top d-flex justify-content-between align-items-center" style="font-size:.82rem;">
+        <span>
+          {% if m.status == 'locked' %}<span class="badge bg-secondary">Locked</span>
+          {% elif m.status == 'approved' %}<span class="badge bg-success">Approved</span>
+          {% elif m.status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>
+          {% else %}<span class="badge bg-light text-dark border">Draft</span>{% endif %}
+          <span class="text-muted ms-2">Evaluator: {{ m.evaluator.get_full_name|default:m.evaluator.username }}</span>
+        </span>
+      </div>
+      {% if m.evaluator_remarks %}<div class="card-body py-2 border-top" style="font-size:.82rem;"><span class="text-muted fw-500">Evaluator Remarks:</span> {{ m.evaluator_remarks }}</div>{% endif %}
+      {% if m.coordinator_remarks %}<div class="card-body py-2 border-top" style="font-size:.82rem;"><span class="text-muted fw-500">Coordinator Remarks:</span> {{ m.coordinator_remarks }}</div>{% endif %}
+      {% else %}
+      <div class="card-body text-center py-5 text-muted">
+        No marks entered yet.
+        {% if not user.is_student_role %}<br><a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy mt-2">Enter Marks</a>{% endif %}
+      </div>
+      {% endif %}
+      {% endwith %}
     </div>
   </div>
 </div>

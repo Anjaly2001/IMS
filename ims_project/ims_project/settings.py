@@ -102,3 +102,21 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+# Email configuration — defaults to printing emails to the console so the
+# Email Automation Module (org thank-you notices) works out of the box for
+# local testing without any setup. Set USE_SMTP_EMAIL=True and the SMTP_*
+# env vars for real delivery in production.
+USE_SMTP_EMAIL = os.environ.get('USE_SMTP_EMAIL', 'False') == 'True'
+
+if USE_SMTP_EMAIL:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('SMTP_PORT', '587'))
+    EMAIL_USE_TLS = os.environ.get('SMTP_USE_TLS', 'True') == 'True'
+    EMAIL_HOST_USER = os.environ.get('SMTP_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = os.environ.get('SMTP_FROM_EMAIL', EMAIL_HOST_USER)
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@ims.university.edu'

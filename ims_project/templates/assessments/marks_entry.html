@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Marks Entry{% endblock %}
+{% block page_title %}Marks Entry{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span><a href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">{{ record.student.register_number }} — #{{ record.internship_number }}</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Marks Entry</span>{% endblock %}
+{% block content %}
+<div class="row"><div class="col-lg-7">
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>{{ record.student.name }} — Internship {{ record.internship_number }}</span>
+    {% if record.internship_type == 'assessment' %}
+    <span class="badge bg-light text-dark border">5th Year Assessment Internship — out of 30</span>
+    {% else %}
+    <span class="badge bg-light text-dark border">Regular Internship — out of 100</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if marks.status != 'draft' %}
+    <div class="alert alert-warning" style="font-size:.85rem;">
+      <i class="bi bi-lock me-1"></i> These marks have already been submitted and can no longer be edited by an Evaluator. A Faculty Coordinator can still review and edit them.
+    </div>
+    {% endif %}
+    <form method="post">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <div class="row g-3">
+        {% for field in form %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-3 p-2 bg-light rounded" style="font-size:.82rem;">
+        <strong>Total:</strong> {{ marks.total|default:"—" }} / {{ marks.max_total }} (auto-calculated on save)
+      </div>
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" name="save_draft" class="btn btn-outline-secondary">Save Draft</button>
+        <button type="submit" name="submit_marks" class="btn btn-navy">Submit Marks</button>
+        <a href="{% url 'internship_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+      <p class="text-muted mt-2 mb-0" style="font-size:.78rem;">Once submitted, marks cannot be edited by an Evaluator — only a Faculty Coordinator can make further changes.</p>
+    </form>
+  </div>
+</div>
+</div></div>
+{% endblock %}

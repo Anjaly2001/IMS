@@ -6,7 +6,10 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
   <p class="text-muted mb-0">{{ students.count }} student(s) found</p>
   {% if user.is_admin %}
-  <a href="{% url 'student_create' %}" class="btn btn-navy"><i class="bi bi-plus-lg me-1"></i>Add Student</a>
+  <div class="d-flex gap-2">
+    <a href="{% url 'student_create' %}" class="btn btn-navy"><i class="bi bi-plus-lg me-1"></i>Add Student</a>
+    <a href="{% url 'student_import' %}" class="btn btn-outline-secondary"><i class="bi bi-upload me-1"></i>Import</a>
+  </div>
   {% endif %}
 </div>
 <div class="card mb-3">
