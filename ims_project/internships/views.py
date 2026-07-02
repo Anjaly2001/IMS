@@ -4,7 +4,13 @@ from django.contrib import messages
 from django.db.models import Q
 from django.utils import timezone
 from .models import InternshipRecord, MentorAssignment
-from .forms import InternshipRecordForm, MentorAssignmentForm, VerificationForm
+from .forms import (
+    InternshipDocumentUploadForm,
+    InternshipRecordForm,
+    MentorAssignmentForm,
+    StudentInternshipSubmissionForm,
+    VerificationForm,
+)
 from students.models import Student
 from accounts.decorators import not_student, admin_required, faculty_required, coordinator_required
 from accounts.models import ActivityLog
@@ -38,18 +44,85 @@ def internship_detail(request, pk):
         InternshipRecord.objects.select_related('student', 'organisation', 'verified_by'),
         pk=pk
     )
+    is_owner = False
     if request.user.is_student_role:
         try:
-            if record.student != request.user.student_profile:
+            is_owner = record.student == request.user.student_profile
+            if not is_owner:
                 messages.error(request, 'Access denied.')
                 return redirect('dashboard')
         except Exception:
             return redirect('dashboard')
-    return render(request, 'internships/internship_detail.html', {'record': record})
+
+    has_marks = hasattr(record, 'marks')
+    has_required_docs = bool(record.certificate and record.report)
+    can_enter_marks = (
+        not request.user.is_student_role
+        and request.user.role in ('evaluator', 'faculty_mentor')
+        and record.verification_status == 'verified'
+        and has_required_docs
+        and not has_marks
+    )
+    if request.user.is_admin and record.verification_status == 'verified' and has_required_docs and not has_marks:
+        can_enter_marks = True
+
+    context = {
+        'record': record,
+        'can_student_edit': is_owner and record.verification_status in ('draft', 'needs_correction'),
+        'can_upload_documents': (
+            (is_owner or request.user.is_admin)
+            and record.verification_status in ('verified', 'marks_entered', 'approved')
+            and record.verification_status != 'locked'
+        ),
+        'can_verify_internship': request.user.is_authenticated and (
+            request.user.is_admin or request.user.role == 'faculty_mentor'
+        ),
+        'can_enter_marks': can_enter_marks,
+        'can_continue_marks': (
+            has_marks
+            and not request.user.is_student_role
+            and (request.user.is_admin or request.user.role in ('evaluator', 'faculty_mentor'))
+            and record.verification_status == 'verified'
+            and getattr(record, 'marks', None).status == 'draft'
+        ),
+        'can_review_marks': has_marks and request.user.is_admin,
+    }
+    return render(request, 'internships/internship_detail.html', context)
 
 @login_required
-@not_student
 def internship_create(request):
+    if request.user.is_student_role:
+        try:
+            student = request.user.student_profile
+        except Exception:
+            messages.error(request, 'Student profile not found.')
+            return redirect('dashboard')
+
+        form = StudentInternshipSubmissionForm(
+            request.POST or None,
+            request.FILES or None,
+            student=student,
+        )
+        if request.method == 'POST' and form.is_valid():
+            record = form.save(commit=False)
+            record.student = student
+            record.verification_status = 'submitted'
+            record.completion_status = 'pending'
+            record.save()
+            ActivityLog.objects.create(
+                user=request.user,
+                action='Student submitted internship details',
+                module='Internships',
+                record_id=str(record.pk),
+            )
+            messages.success(request, 'Internship details submitted for faculty review.')
+            return redirect('internship_detail', pk=record.pk)
+        return render(request, 'internships/internship_form.html', {
+            'form': form,
+            'title': 'Submit Internship Details',
+            'is_student_submission': True,
+        })
+
     student_id = request.GET.get('student')
     initial = {}
     if student_id:
@@ -75,12 +148,39 @@ def internship_create(request):
     return render(request, 'internships/internship_form.html', {'form': form, 'title': 'Add Internship Record'})
 
 @login_required
-@not_student
 def internship_edit(request, pk):
     record = get_object_or_404(InternshipRecord, pk=pk)
     if record.verification_status == 'locked':
         messages.error(request, 'This record is locked and cannot be edited.')
         return redirect('internship_detail', pk=pk)
+
+    if request.user.is_student_role:
+        try:
+            is_owner = record.student == request.user.student_profile
+        except Exception:
+            is_owner = False
+        if not is_owner or record.verification_status not in ('draft', 'needs_correction'):
+            messages.error(request, 'You can only edit your own draft or correction-requested submissions.')
+            return redirect('internship_detail', pk=pk)
+        form = StudentInternshipSubmissionForm(
+            request.POST or None,
+            request.FILES or None,
+            instance=record,
+            student=record.student,
+        )
+        if request.method == 'POST' and form.is_valid():
+            updated = form.save(commit=False)
+            updated.verification_status = 'submitted'
+            updated.save()
+            messages.success(request, 'Internship details resubmitted for review.')
+            return redirect('internship_detail', pk=pk)
+        return render(request, 'internships/internship_form.html', {
+            'form': form,
+            'title': 'Update Internship Details',
+            'record': record,
+            'is_student_submission': True,
+        })
+
     # Per SRS: only the Faculty Coordinator can edit a record once it has
     # left draft status. Evaluators and other non-coordinator staff may
     # still edit while it's a draft (e.g. fixing a student's submission).
@@ -97,6 +197,9 @@ def internship_edit(request, pk):
 @login_required
 @coordinator_required
 def internship_verify(request, pk):
+    if not (request.user.is_admin or request.user.role == 'faculty_mentor'):
+        messages.error(request, 'Only a Faculty Mentor or Admin can verify internship submissions.')
+        return redirect('internship_detail', pk=pk)
     record = get_object_or_404(InternshipRecord, pk=pk)
     previous_status = record.verification_status
     form = VerificationForm(request.POST or None, instance=record)
@@ -120,6 +223,42 @@ def internship_verify(request, pk):
         messages.success(request, f'Status updated to: {r.get_verification_status_display()}')
         return redirect('internship_detail', pk=pk)
     return render(request, 'internships/verify_form.html', {'form': form, 'record': record})
+
+
+@login_required
+def internship_upload_documents(request, pk):
+    record = get_object_or_404(InternshipRecord, pk=pk)
+    if request.user.is_student_role:
+        try:
+            if record.student != request.user.student_profile:
+                messages.error(request, 'Access denied.')
+                return redirect('dashboard')
+        except Exception:
+            messages.error(request, 'Student profile not found.')
+            return redirect('dashboard')
+    elif not request.user.is_admin:
+        messages.error(request, 'Only the student or an admin can upload internship documents.')
+        return redirect('internship_detail', pk=pk)
+
+    if record.verification_status not in ('verified', 'marks_entered', 'approved'):
+        messages.error(request, 'Documents can be uploaded after faculty verification.')
+        return redirect('internship_detail', pk=pk)
+    if record.verification_status == 'locked':
+        messages.error(request, 'This internship record is locked.')
+        return redirect('internship_detail', pk=pk)
+
+    form = InternshipDocumentUploadForm(request.POST or None, request.FILES or None, instance=record)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        ActivityLog.objects.create(
+            user=request.user,
+            action='Uploaded internship certificate/report',
+            module='Internships',
+            record_id=str(record.pk),
+        )
+        messages.success(request, 'Internship documents uploaded.')
+        return redirect('internship_detail', pk=pk)
+    return render(request, 'internships/document_upload_form.html', {'form': form, 'record': record})
 
 @login_required
 @not_student

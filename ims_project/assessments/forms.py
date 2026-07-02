@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from .models import InternshipMarks
 
 
@@ -62,16 +63,24 @@ class InternshipMarksForm(forms.ModelForm):
                     self.add_error(field, f'Cannot exceed {max_value} marks.')
                 if value < 0:
                     self.add_error(field, 'Marks cannot be negative.')
+
+        evaluated_at = cleaned_data.get('evaluated_at')
+        if evaluated_at and evaluated_at > timezone.localdate():
+            self.add_error('evaluated_at', 'Evaluation date cannot be in the future.')
+
+        if self.data.get('submit_marks'):
+            for field in limits:
+                if cleaned_data.get(field) is None:
+                    self.add_error(field, 'This mark is required before submission.')
         return cleaned_data
 
 
 class MarksApprovalForm(forms.ModelForm):
-    """Used by the Faculty Coordinator to review, edit, approve, or lock
-    marks already submitted by an Evaluator."""
+    """Used by Department Admins to review, edit, approve, or lock marks."""
     class Meta:
         model = InternshipMarks
         fields = ['worksheet_marks', 'viva_marks', 'certificate_marks', 'ppo_marks',
-                  'status', 'coordinator_remarks']
+                  'coordinator_remarks']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -84,6 +93,7 @@ class MarksApprovalForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        final_action = self.data.get('approve') or self.data.get('lock')
         limits = {
             'worksheet_marks': self.instance.max_worksheet,
             'viva_marks': self.instance.max_viva,
@@ -94,6 +104,8 @@ class MarksApprovalForm(forms.ModelForm):
 
         for field, max_value in limits.items():
             value = cleaned_data.get(field)
+            if final_action and value is None:
+                self.add_error(field, 'This mark is required before approval.')
             if value is not None:
                 if value > max_value:
                     self.add_error(field, f'Cannot exceed {max_value} marks.')

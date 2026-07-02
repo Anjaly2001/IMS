@@ -6,7 +6,7 @@ from .models import InternshipMarks, MarkEditHistory
 from .forms import InternshipMarksForm, MarksApprovalForm
 from .calculations import calculate_student_score
 from internships.models import InternshipRecord
-from accounts.decorators import not_student, coordinator_required
+from accounts.decorators import admin_required, not_student
 from accounts.models import ActivityLog
 
 
@@ -21,8 +21,17 @@ def marks_entry(request, internship_pk):
     Coordinator-side edit path).
     """
     record = get_object_or_404(InternshipRecord, pk=internship_pk)
+    if not (request.user.is_admin or request.user.role in ('evaluator', 'faculty_mentor')):
+        messages.error(request, 'Only an Evaluator, Faculty Mentor, or Admin can enter marks.')
+        return redirect('internship_detail', pk=internship_pk)
     if record.verification_status == 'locked':
         messages.error(request, 'This internship record is locked.')
+        return redirect('internship_detail', pk=internship_pk)
+    if record.verification_status != 'verified':
+        messages.error(request, 'Marks can be entered only after the internship is verified.')
+        return redirect('internship_detail', pk=internship_pk)
+    if not (record.certificate and record.report):
+        messages.error(request, 'Certificate and report must be uploaded before marks entry.')
         return redirect('internship_detail', pk=internship_pk)
 
     marks, _ = InternshipMarks.objects.get_or_create(
@@ -64,12 +73,11 @@ def marks_entry(request, internship_pk):
 
 
 @login_required
-@coordinator_required
+@admin_required
 def marks_review(request, pk):
     """
-    Faculty Coordinator review (per SRS: 'Open Student -> Review Marks ->
-    Edit Marks -> Approve -> Lock'). This is the only path that can edit
-    marks once an Evaluator has submitted them.
+    Department Admin review and lock step. Admins can correct submitted
+    marks if needed, then approve or lock the record for final reporting.
     """
     marks = get_object_or_404(InternshipMarks, pk=pk)
     if marks.status == 'locked':

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Marks Review{% endblock %}
-{% block page_title %}Faculty Coordinator — Marks Review{% endblock %}
+{% block page_title %}Department Admin — Marks Review{% endblock %}
 {% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span><a href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">{{ record.student.register_number }} — #{{ record.internship_number }}</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Marks Review</span>{% endblock %}
 {% block content %}
 <div class="row"><div class="col-lg-7">
@@ -20,7 +20,7 @@
       {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors.0 }}</div>{% endif %}
       <div class="row g-3">
         {% for field in form %}
-          {% if field.name not in 'status' %}
+          {% if field.name != 'coordinator_remarks' %}
           <div class="col-md-6">
             <label class="form-label">{{ field.label }}</label>
             {{ field }}{% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
@@ -32,7 +32,7 @@
         <strong>Total:</strong> {{ marks.total|default:"—" }} / {{ marks.max_total }} (auto-calculated on save)
       </div>
       <div class="mt-3">
-        <label class="form-label">Coordinator Remarks</label>
+        <label class="form-label">Department Admin Remarks</label>
         {{ form.coordinator_remarks }}
       </div>
       <div class="mt-4 d-flex gap-2 flex-wrap">

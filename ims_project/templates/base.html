@@ -168,6 +168,11 @@
     {% else %}
     <div class="nav-section">My Internships</div>
     <div class="nav-item">
+      <a href="{% url 'internship_create' %}" class="{% if request.resolver_match.url_name == 'internship_create' %}active{% endif %}">
+        <i class="bi bi-plus-circle"></i> Submit Internship
+      </a>
+    </div>
+    <div class="nav-item">
       {% if user.student_profile %}
       <a href="{% url 'student_detail' user.student_profile.pk %}"><i class="bi bi-person-lines-fill"></i> My Profile</a>
       {% endif %}

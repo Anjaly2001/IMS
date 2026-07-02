@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Add Break{% endblock %}
-{% block page_title %}Add Break Record{% endblock %}
-{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'student_list' %}" class="breadcrumb-link">Students</a><span class="breadcrumb-sep">/</span><a href="{% url 'student_detail' student.pk %}" class="breadcrumb-link">{{ student.register_number }}</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Add Break</span>{% endblock %}
+{% block title %}Upload Documents{% endblock %}
+{% block page_title %}Upload Internship Documents{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">Internship {{ record.internship_number }}</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Documents</span>{% endblock %}
 {% block content %}
 <div class="row"><div class="col-lg-7">
 <div class="card">
-  <div class="card-header">Break Record for <strong>{{ student.name }}</strong></div>
+  <div class="card-header">{{ record.student.name }} — Internship {{ record.internship_number }}</div>
   <div class="card-body">
     <form method="post" enctype="multipart/form-data">{% csrf_token %}
       {% if form.non_field_errors %}
@@ -21,8 +21,8 @@
         {% endfor %}
       </div>
       <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-navy">Save Break</button>
-        <a href="{% url 'student_detail' student.pk %}" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-navy">Upload Documents</button>
+        <a href="{% url 'internship_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
       </div>
     </form>
   </div>

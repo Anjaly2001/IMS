@@ -82,18 +82,13 @@ def student_edit(request, pk):
 @not_student
 def break_create(request, student_pk):
     student = get_object_or_404(Student, pk=student_pk)
-    form = BreakRecordForm(request.POST or None, request.FILES or None)
+    form = BreakRecordForm(request.POST or None, request.FILES or None, student=student)
     if request.method == 'POST' and form.is_valid():
         br = form.save(commit=False)
         br.student = student
-        if br.start_date < student.degree_start_date or br.end_date > student.degree_end_date:
-            messages.error(request, 'Break dates must fall within the degree period.')
-        elif br.end_date <= br.start_date:
-            messages.error(request, 'End date must be after start date.')
-        else:
-            br.save()
-            messages.success(request, 'Break record added.')
-            return redirect('student_detail', pk=student_pk)
+        br.save()
+        messages.success(request, 'Break record added.')
+        return redirect('student_detail', pk=student_pk)
     return render(request, 'students/break_form.html', {'form': form, 'student': student})
 
 @login_required

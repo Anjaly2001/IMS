@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Internship {{ record.internship_number }}{% endblock %}
 {% block page_title %}Internship Record{% endblock %}
-{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ record.student.register_number }} — #{{ record.internship_number }}</span>{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span>{% if user.is_student_role %}<a href="{% url 'student_detail' record.student.pk %}" class="breadcrumb-link">My Profile</a>{% else %}<a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a>{% endif %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ record.student.register_number }} — #{{ record.internship_number }}</span>{% endblock %}
 {% block content %}
 <div class="row g-3">
   <div class="col-lg-5">
@@ -9,6 +9,8 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <span>Internship {{ record.internship_number }} — {{ record.student.name }}</span>
         {% if not user.is_student_role and record.verification_status != 'locked' %}
+        <a href="{% url 'internship_edit' record.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        {% elif can_student_edit %}
         <a href="{% url 'internship_edit' record.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
         {% endif %}
       </div>
@@ -42,13 +44,14 @@
         </table>
       </div>
       <div class="card-footer bg-white d-flex gap-2 flex-wrap">
-        {% if user.is_coordinator %}
-        <a href="{% url 'internship_verify' record.pk %}" class="btn btn-sm btn-outline-primary">Update Status</a>
+        {% if can_verify_internship %}
+        <a href="{% url 'internship_verify' record.pk %}" class="btn btn-sm btn-outline-primary">Review / Verify</a>
         {% endif %}
-        {% if not user.is_student_role and record.verification_status != 'locked' %}
-          {% if not record.marks %}
-          <a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy">Enter Marks</a>
-          {% endif %}
+        {% if can_upload_documents %}
+        <a href="{% url 'internship_upload_documents' record.pk %}" class="btn btn-sm btn-outline-primary">Upload Documents</a>
+        {% endif %}
+        {% if can_enter_marks %}
+        <a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy">Enter Marks</a>
         {% endif %}
         {% if record.certificate %}<a href="{{ record.certificate.url }}" class="btn btn-sm btn-outline-success" target="_blank">Certificate</a>{% endif %}
         {% if record.report %}<a href="{{ record.report.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Report</a>{% endif %}
@@ -109,9 +112,9 @@
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-clipboard-data me-2"></i>Marks</span>
-        {% if record.marks and user.is_coordinator and record.marks.status != 'locked' %}
-        <a href="{% url 'marks_review' record.marks.pk %}" class="btn btn-sm btn-navy"><i class="bi bi-pencil me-1"></i>Review / Approve</a>
-        {% elif record.marks and not user.is_student_role and record.marks.status == 'draft' %}
+        {% if record.marks and can_review_marks and record.marks.status != 'locked' %}
+        <a href="{% url 'marks_review' record.marks.pk %}" class="btn btn-sm btn-navy"><i class="bi bi-pencil me-1"></i>Review / Lock</a>
+        {% elif can_continue_marks %}
         <a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Continue Entry</a>
         {% endif %}
       </div>
@@ -145,7 +148,7 @@
       {% else %}
       <div class="card-body text-center py-5 text-muted">
         No marks entered yet.
-        {% if not user.is_student_role %}<br><a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy mt-2">Enter Marks</a>{% endif %}
+        {% if can_enter_marks %}<br><a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy mt-2">Enter Marks</a>{% endif %}
       </div>
       {% endif %}
       {% endwith %}
