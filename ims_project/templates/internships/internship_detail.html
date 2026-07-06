@@ -48,10 +48,13 @@
         <a href="{% url 'internship_verify' record.pk %}" class="btn btn-sm btn-outline-primary">Review / Verify</a>
         {% endif %}
         {% if can_upload_documents %}
-        <a href="{% url 'internship_upload_documents' record.pk %}" class="btn btn-sm btn-outline-primary">Upload Documents</a>
+        <a href="{% url 'document_upload' record.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload me-1"></i>Upload Document</a>
         {% endif %}
         {% if can_enter_marks %}
         <a href="{% url 'marks_entry' record.pk %}" class="btn btn-sm btn-navy">Enter Marks</a>
+        {% endif %}
+        {% if not user.is_student_role %}
+        <a href="{% url 'intermediate_mark_add' record.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus me-1"></i>Add Intermediate Mark</a>
         {% endif %}
         {% if record.certificate %}<a href="{{ record.certificate.url }}" class="btn btn-sm btn-outline-success" target="_blank">Certificate</a>{% endif %}
         {% if record.report %}<a href="{{ record.report.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">Report</a>{% endif %}
@@ -97,6 +100,36 @@
       </div>
     </div>
 
+    <!-- Documents (SRS 4.9) -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-files me-2"></i>Uploaded Documents</span>
+        {% if can_upload_documents %}
+        <a href="{% url 'document_upload' record.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload me-1"></i>Upload</a>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% for doc in documents %}
+        <div class="d-flex align-items-center gap-2 p-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <i class="bi bi-file-earmark text-muted" style="font-size:1.2rem;flex-shrink:0;"></i>
+          <div style="flex:1;min-width:0;">
+            <div class="fw-500" style="font-size:.875rem;">{{ doc.get_document_type_display }}</div>
+            <div class="text-muted" style="font-size:.75rem;">{{ doc.filename }} · {{ doc.uploaded_at|date:"d M Y" }}</div>
+          </div>
+          {% if doc.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
+          {% elif doc.verification_status == 'rejected' %}<span class="badge bg-danger">Rejected</span>
+          {% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
+          <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-eye"></i></a>
+          {% if can_verify_internship and doc.verification_status == 'pending' %}
+          <a href="{% url 'document_verify' doc.pk %}" class="btn btn-sm btn-outline-primary">Verify</a>
+          {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-muted text-center py-4" style="font-size:.875rem;">No documents uploaded yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
     {% if record.student_remarks or record.remarks %}
     <div class="card">
       <div class="card-header">Remarks</div>
@@ -109,6 +142,38 @@
   </div>
 
   <div class="col-lg-7">
+    <!-- Intermediate Marks (SRS 4.7) -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-journal-text me-2"></i>Intermediate Assessments</span>
+        {% if not user.is_student_role and record.verification_status != 'locked' %}
+        <a href="{% url 'intermediate_mark_add' record.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus me-1"></i>Add</a>
+        {% endif %}
+      </div>
+      {% if intermediate_marks %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:.83rem;">
+          <thead><tr><th>Assessment</th><th>Type</th><th>Marks</th><th>%</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            {% for im in intermediate_marks %}
+            <tr>
+              <td class="fw-500">{{ im.assessment_name }}</td>
+              <td><span class="badge bg-light text-dark border" style="font-size:.7rem;">{{ im.get_assessment_type_display }}</span></td>
+              <td>{{ im.marks_awarded }}/{{ im.maximum_marks }}</td>
+              <td>{% if im.percentage >= 75 %}<span class="text-success fw-600">{{ im.percentage }}%</span>{% elif im.percentage >= 50 %}<span class="text-warning fw-600">{{ im.percentage }}%</span>{% else %}<span class="text-danger fw-600">{{ im.percentage }}%</span>{% endif %}</td>
+              <td>{% if im.status == 'locked' %}<span class="badge bg-secondary">Locked</span>{% elif im.status == 'approved' %}<span class="badge bg-success">Approved</span>{% elif im.status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>{% else %}<span class="badge bg-light text-dark border">Draft</span>{% endif %}</td>
+              <td>{% if not user.is_student_role and im.status != 'locked' %}<a href="{% url 'intermediate_mark_edit' im.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-muted text-center py-3" style="font-size:.875rem;">No intermediate assessments recorded.</div>
+      {% endif %}
+    </div>
+
+    <!-- Final Marks -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span><i class="bi bi-clipboard-data me-2"></i>Marks</span>

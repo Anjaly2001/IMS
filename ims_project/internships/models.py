@@ -127,3 +127,43 @@ class MentorAssignment(models.Model):
         if self.effective_to:
             return self.effective_from <= today <= self.effective_to
         return self.effective_from <= today
+
+
+class InternshipDocument(models.Model):
+    """SRS 4.9 — Multi-type document store per internship."""
+    DOC_TYPE_CHOICES = [
+        ('certificate', 'Internship Certificate'),
+        ('report', 'Internship Report'),
+        ('approval', 'Break/Approval Document'),
+        ('evaluation', 'Evaluation Sheet'),
+        ('confirmation', 'Organisation Confirmation'),
+        ('other', 'Other Document'),
+    ]
+    DOC_STATUS_CHOICES = [
+        ('pending', 'Pending Verification'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    ]
+    internship_record = models.ForeignKey(
+        InternshipRecord, on_delete=models.CASCADE, related_name='documents'
+    )
+    document_type = models.CharField(max_length=20, choices=DOC_TYPE_CHOICES)
+    file = models.FileField(upload_to='internship_documents/')
+    description = models.CharField(max_length=200, blank=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_docs')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    verification_status = models.CharField(max_length=10, choices=DOC_STATUS_CHOICES, default='pending')
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_docs')
+    verified_at = models.DateTimeField(null=True, blank=True)
+    remarks = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"{self.get_document_type_display()} — {self.internship_record}"
+
+    @property
+    def filename(self):
+        import os
+        return os.path.basename(self.file.name)

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Verify Document{% endblock %}
+{% block page_title %}Verify Document{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep">/</span>
+<a href="{% url 'internship_detail' doc.internship_record.pk %}" class="breadcrumb-link">Internship #{{ doc.internship_record.internship_number }}</a>
+<span class="breadcrumb-sep">/</span>
+<span class="breadcrumb-current">Verify Document</span>
+{% endblock %}
+{% block content %}
+<div class="row"><div class="col-lg-6">
+<div class="card">
+  <div class="card-header"><i class="bi bi-patch-check me-2"></i>Verify Document</div>
+  <div class="card-body">
+    <table class="table table-sm mb-3" style="font-size:.875rem;">
+      <tr><td class="text-muted">Type</td><td>{{ doc.get_document_type_display }}</td></tr>
+      <tr><td class="text-muted">File</td><td><a href="{{ doc.file.url }}" target="_blank">{{ doc.filename }}</a></td></tr>
+      <tr><td class="text-muted">Uploaded By</td><td>{{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username }}</td></tr>
+      <tr><td class="text-muted">Uploaded At</td><td>{{ doc.uploaded_at|date:"d M Y, H:i" }}</td></tr>
+      {% if doc.description %}<tr><td class="text-muted">Description</td><td>{{ doc.description }}</td></tr>{% endif %}
+    </table>
+    <form method="post">{% csrf_token %}
+      {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-navy">Save</button>
+        <a href="{% url 'internship_detail' doc.internship_record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+</div></div>
+{% endblock %}

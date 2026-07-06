@@ -25,15 +25,20 @@ def dashboard(request):
             'my_students': Student.objects.filter(id__in=assigned_students)[:10],
         })
     elif user.role == 'evaluator':
-        # Faculty Evaluator dashboard
+        verified_internships = InternshipRecord.objects.filter(
+            verification_status='verified'
+        ).select_related('student', 'organisation')
         context.update({
-            'pending_marks': InternshipRecord.objects.filter(verification_status='verified').count(),
+            'pending_marks': verified_internships.count(),
             'marks_entered_today': InternshipMarks.objects.filter(evaluator=user).count(),
+            'verified_internships': verified_internships[:10],
         })
     elif user.role == 'hod':
+        total_intern = InternshipRecord.objects.count()
+        completed_intern = InternshipRecord.objects.filter(completion_status='completed').count()
         context.update({
             'total_students': Student.objects.filter(status='active').count(),
-            'completed_pct': round(InternshipRecord.objects.filter(completion_status='completed').count() / max(InternshipRecord.objects.count(), 1) * 100),
+            'completed_pct': round(completed_intern / max(total_intern, 1) * 100),
             'pending_approvals': InternshipRecord.objects.filter(verification_status='marks_entered').count(),
         })
     elif user.is_student_role:

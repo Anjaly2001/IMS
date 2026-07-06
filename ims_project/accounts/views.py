@@ -81,3 +81,84 @@ def activity_log(request):
 @login_required
 def profile_view(request):
     return render(request, 'accounts/profile.html', {'user_obj': request.user})
+
+
+# ── Password Change ───────────────────────────────────────────────────────────
+@login_required
+def password_change_view(request):
+    from .forms import PasswordChangeCustomForm
+    form = PasswordChangeCustomForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        if not request.user.check_password(form.cleaned_data['current_password']):
+            form.add_error('current_password', 'Incorrect current password.')
+        else:
+            request.user.set_password(form.cleaned_data['new_password'])
+            request.user.save()
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, request.user)
+            ActivityLog.objects.create(user=request.user, action='Password changed', module='Authentication')
+            messages.success(request, 'Password changed successfully.')
+            return redirect('profile')
+    return render(request, 'accounts/password_change.html', {'form': form})
+
+
+# ── User CRUD additions ───────────────────────────────────────────────────────
+@login_required
+@system_admin_required
+def user_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if user == request.user:
+        messages.error(request, 'You cannot delete your own account.')
+        return redirect('user_list')
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        ActivityLog.objects.create(user=request.user, action=f'Deleted user: {username}', module='User Management')
+        messages.success(request, f'User {username} deleted.')
+        return redirect('user_list')
+    return render(request, 'accounts/user_confirm_delete.html', {'user_obj': user})
+
+
+@login_required
+@system_admin_required
+def user_toggle_active(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if user == request.user:
+        messages.error(request, 'You cannot deactivate your own account.')
+        return redirect('user_list')
+    user.is_active = not user.is_active
+    user.save()
+    state = 'activated' if user.is_active else 'deactivated'
+    ActivityLog.objects.create(user=request.user, action=f'User {state}: {user.username}', module='User Management')
+    messages.success(request, f'User {user.username} {state}.')
+    return redirect('user_list')
+
+
+# ── Email Settings UI ─────────────────────────────────────────────────────────
+@login_required
+@system_admin_required
+def email_settings_view(request):
+    from django.conf import settings as dj_settings
+    config = {
+        'smtp_active': getattr(dj_settings, 'USE_SMTP_EMAIL', False),
+        'backend': dj_settings.EMAIL_BACKEND,
+        'host': getattr(dj_settings, 'EMAIL_HOST', '—'),
+        'port': getattr(dj_settings, 'EMAIL_PORT', '—'),
+        'use_tls': getattr(dj_settings, 'EMAIL_USE_TLS', False),
+        'from_email': dj_settings.DEFAULT_FROM_EMAIL,
+        'smtp_user': getattr(dj_settings, 'EMAIL_HOST_USER', '—'),
+    }
+    sent = None
+    if request.method == 'POST':
+        test_email = request.POST.get('test_email','').strip()
+        if test_email:
+            try:
+                from django.core.mail import send_mail
+                send_mail('IMS — Test Email',
+                    'This is a test email from the Internship Management System.',
+                    dj_settings.DEFAULT_FROM_EMAIL, [test_email])
+                sent = test_email
+                messages.success(request, f'Test email sent to {test_email}.')
+            except Exception as e:
+                messages.error(request, f'Failed: {e}')
+    return render(request, 'accounts/email_settings.html', {'config': config, 'sent': sent})

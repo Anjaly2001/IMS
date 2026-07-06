@@ -155,21 +155,42 @@
 </div>
 
 {% elif role == 'faculty_mentor' %}
-<!-- Faculty Dashboard -->
+<!-- Faculty Coordinator Dashboard -->
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="stat-card" style="background:linear-gradient(135deg,#1e3a5f,#2d5282);">
       <div class="stat-value">{{ assigned_count|default:0 }}</div>
       <div class="stat-label">My Students</div>
       <i class="bi bi-people stat-icon"></i>
     </div>
   </div>
-  <div class="col-6 col-md-4">
+  <div class="col-6 col-md-3">
     <div class="stat-card" style="background:linear-gradient(135deg,#c05621,#ed8936);">
       <div class="stat-value">{{ pending_verification|default:0 }}</div>
       <div class="stat-label">Pending Verification</div>
       <i class="bi bi-exclamation-circle stat-icon"></i>
     </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#553c9a,#805ad5);">
+      <div class="stat-value">{{ pending_approvals|default:0 }}</div>
+      <div class="stat-label">Marks to Approve</div>
+      <i class="bi bi-clipboard-check stat-icon"></i>
+    </div>
+  </div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <a href="{% url 'internship_list' %}?status=submitted" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#fff8e1;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-inbox text-warning" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Pending Verifications</div><div class="text-muted" style="font-size:.78rem;">Review submitted internships</div></div>
+    </a>
+  </div>
+  <div class="col-md-6">
+    <a href="{% url 'report_home' %}" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#faf5ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-bar-chart" style="font-size:1.3rem;color:#805ad5;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Reports</div><div class="text-muted" style="font-size:.78rem;">Generate & export</div></div>
+    </a>
   </div>
 </div>
 <div class="card">
@@ -194,6 +215,105 @@
   </div>
 </div>
 
+{% elif role == 'evaluator' %}
+<!-- Faculty Evaluator Dashboard -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#c05621,#ed8936);">
+      <div class="stat-value">{{ pending_marks|default:0 }}</div>
+      <div class="stat-label">Pending Marks Entry</div>
+      <i class="bi bi-pencil-square stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#276749,#38a169);">
+      <div class="stat-value">{{ marks_entered_today|default:0 }}</div>
+      <div class="stat-label">Marks Entered</div>
+      <i class="bi bi-check-circle stat-icon"></i>
+    </div>
+  </div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-6">
+    <a href="{% url 'internship_list' %}?status=verified" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#fff8e1;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-clipboard-data text-warning" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Enter Marks</div><div class="text-muted" style="font-size:.78rem;">Internships ready for marks entry</div></div>
+    </a>
+  </div>
+  <div class="col-md-6">
+    <a href="{% url 'notifications' %}" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#ebf4ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-bell text-primary" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Notifications</div><div class="text-muted" style="font-size:.78rem;">Pending tasks &amp; alerts</div></div>
+    </a>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header">Internships Ready for Marks Entry</div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead><tr><th>Student</th><th>Internship</th><th>Organisation</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for r in verified_internships %}
+        <tr>
+          <td>{{ r.student.name }}<br><small class="text-muted">{{ r.student.register_number }}</small></td>
+          <td>#{{ r.internship_number }}</td>
+          <td>{{ r.organisation.name|truncatechars:30 }}</td>
+          <td><a href="{% url 'marks_entry' r.pk %}" class="btn btn-sm btn-navy">Enter Marks</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No internships ready for marks entry.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% elif role == 'hod' %}
+<!-- HoD / Programme Coordinator Dashboard -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#1e3a5f,#2d5282);">
+      <div class="stat-value">{{ total_students|default:0 }}</div>
+      <div class="stat-label">Active Students</div>
+      <i class="bi bi-people stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#276749,#38a169);">
+      <div class="stat-value">{{ completed_pct|default:0 }}%</div>
+      <div class="stat-label">Completion Rate</div>
+      <i class="bi bi-graph-up stat-icon"></i>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#c05621,#ed8936);">
+      <div class="stat-value">{{ pending_approvals|default:0 }}</div>
+      <div class="stat-label">Pending Approvals</div>
+      <i class="bi bi-hourglass-split stat-icon"></i>
+    </div>
+  </div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <a href="{% url 'student_list' %}" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#ebf4ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-people text-primary" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">All Students</div><div class="text-muted" style="font-size:.78rem;">View &amp; filter students</div></div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'marks_report' %}" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#f0fff4;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-clipboard-data text-success" style="font-size:1.3rem;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">Marks Report</div><div class="text-muted" style="font-size:.78rem;">Consolidated marks view</div></div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{% url 'report_home' %}" class="card text-decoration-none p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+      <div style="width:42px;height:42px;background:#faf5ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;"><i class="bi bi-bar-chart" style="font-size:1.3rem;color:#805ad5;"></i></div>
+      <div><div class="fw-600" style="font-size:.875rem;color:#1e3a5f;">All Reports</div><div class="text-muted" style="font-size:.78rem;">Analytics &amp; exports</div></div>
+    </a>
+  </div>
+</div>
+
 {% elif role == 'student' %}
 <!-- Student Dashboard -->
 {% if student %}
@@ -212,28 +332,61 @@
       {% if mentor %}<div style="font-size:.85rem;"><span class="text-muted">Mentor:</span> {{ mentor.faculty.get_full_name|default:mentor.faculty.username }}</div>{% endif %}
     </div>
   </div>
+  <div class="col-md-8">
+    <div class="row g-2 h-100">
+      <div class="col-6">
+        <a href="{% url 'internship_create' %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+          <div style="width:36px;height:36px;background:#f0fff4;border-radius:.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-plus-circle text-success" style="font-size:1.1rem;"></i></div>
+          <div><div class="fw-600" style="font-size:.82rem;color:#1e3a5f;">Submit Internship</div></div>
+        </a>
+      </div>
+      <div class="col-6">
+        <a href="{% url 'marks_summary' student.pk %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+          <div style="width:36px;height:36px;background:#ebf4ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-clipboard-data text-primary" style="font-size:1.1rem;"></i></div>
+          <div><div class="fw-600" style="font-size:.82rem;color:#1e3a5f;">View My Marks</div></div>
+        </a>
+      </div>
+      <div class="col-6">
+        <a href="{% url 'notifications' %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+          <div style="width:36px;height:36px;background:#fffbeb;border-radius:.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-bell text-warning" style="font-size:1.1rem;"></i></div>
+          <div><div class="fw-600" style="font-size:.82rem;color:#1e3a5f;">Notifications</div></div>
+        </a>
+      </div>
+      <div class="col-6">
+        <a href="{% url 'student_score_card' student.pk %}" class="card text-decoration-none h-100 p-3 d-flex flex-row align-items-center gap-3" style="border:2px dashed #d1d5db;">
+          <div style="width:36px;height:36px;background:#faf5ff;border-radius:.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-file-earmark-text" style="font-size:1.1rem;color:#805ad5;"></i></div>
+          <div><div class="fw-600" style="font-size:.82rem;color:#1e3a5f;">Score Card</div></div>
+        </a>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="card">
-  <div class="card-header">My Internship Records</div>
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>My Internship Records</span>
+    <a href="{% url 'internship_create' %}" class="btn btn-sm btn-navy"><i class="bi bi-plus me-1"></i>Submit</a>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover mb-0">
-      <thead><tr><th>#</th><th>Organisation</th><th>Dates</th><th>Status</th><th>Action</th></tr></thead>
+      <thead><tr><th>#</th><th>Organisation</th><th>Dates</th><th>Documents</th><th>Status</th><th>Action</th></tr></thead>
       <tbody>
         {% for r in internships %}
         <tr>
           <td>{{ r.internship_number }}</td>
           <td>{{ r.organisation.name }}</td>
           <td style="font-size:.83rem;">{{ r.start_date }} — {{ r.end_date }}</td>
+          <td><a href="{% url 'document_upload' r.pk %}" class="btn btn-xs btn-outline-secondary" style="font-size:.72rem;padding:.1rem .4rem;"><i class="bi bi-upload"></i> Upload</a></td>
           <td>
             {% if r.verification_status == 'verified' %}<span class="badge bg-success">Verified</span>
             {% elif r.verification_status == 'submitted' %}<span class="badge bg-warning text-dark">Submitted</span>
             {% elif r.verification_status == 'locked' %}<span class="badge bg-secondary">Completed</span>
+            {% elif r.verification_status == 'needs_correction' %}<span class="badge bg-danger">Needs Correction</span>
             {% else %}<span class="badge bg-light text-dark border">{{ r.get_verification_status_display }}</span>{% endif %}
           </td>
           <td><a href="{% url 'internship_detail' r.pk %}" class="btn btn-sm btn-navy">View</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-center text-muted py-4">No internship records found.</td></tr>
+        <tr><td colspan="6" class="text-center text-muted py-4">No internship records yet. <a href="{% url 'internship_create' %}">Submit your first internship</a>.</td></tr>
         {% endfor %}
       </tbody>
     </table>

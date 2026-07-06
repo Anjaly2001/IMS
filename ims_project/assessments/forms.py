@@ -112,3 +112,25 @@ class MarksApprovalForm(forms.ModelForm):
                 if value < 0:
                     self.add_error(field, 'Marks cannot be negative.')
         return cleaned_data
+
+
+class IntermediateMarkForm(forms.ModelForm):
+    class Meta:
+        from .models import IntermediateMark
+        model = IntermediateMark
+        fields = ['assessment_type','assessment_name','maximum_marks','marks_awarded','weightage','assessment_date','remarks']
+        widgets = {'assessment_date': forms.DateInput(attrs={'type':'date','class':'form-control'})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, f in self.fields.items():
+            if 'class' not in f.widget.attrs:
+                f.widget.attrs['class'] = 'form-control'
+
+    def clean(self):
+        cleaned = super().clean()
+        mx = cleaned.get('maximum_marks'); aw = cleaned.get('marks_awarded')
+        if mx and aw:
+            if aw > mx: self.add_error('marks_awarded', f'Cannot exceed {mx} marks.')
+            if aw < 0: self.add_error('marks_awarded', 'Cannot be negative.')
+        return cleaned

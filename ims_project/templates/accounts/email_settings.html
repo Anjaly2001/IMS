@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Email Settings{% endblock %}
+{% block page_title %}Email Settings{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Email Settings</span>{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-envelope-gear me-2"></i>Current Configuration</div>
+      <div class="card-body">
+        <table class="table table-sm" style="font-size:.875rem;">
+          <tr><td class="text-muted">SMTP Active</td><td>{% if config.smtp_active %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-warning text-dark">No — Console Mode</span>{% endif %}</td></tr>
+          <tr><td class="text-muted">From Email</td><td>{{ config.from_email }}</td></tr>
+          <tr><td class="text-muted">SMTP Host</td><td>{{ config.host }}</td></tr>
+          <tr><td class="text-muted">SMTP Port</td><td>{{ config.port }}</td></tr>
+          <tr><td class="text-muted">Use TLS</td><td>{{ config.use_tls }}</td></tr>
+          <tr><td class="text-muted">SMTP User</td><td>{{ config.smtp_user }}</td></tr>
+        </table>
+        {% if not config.smtp_active %}
+        <div class="alert alert-info mt-2" style="font-size:.82rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          Email is currently in <strong>Console Mode</strong> — emails are printed to the terminal, not sent to real addresses. To enable real delivery, set the following environment variables before starting the server:
+          <pre class="mt-2 mb-0" style="font-size:.75rem;">USE_SMTP_EMAIL=True
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@email.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM_EMAIL=your@email.com</pre>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-send me-2"></i>Send Test Email</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Recipient Email Address</label>
+            <input type="email" name="test_email" class="form-control" placeholder="test@example.com" required>
+          </div>
+          <button type="submit" class="btn btn-navy"><i class="bi bi-send me-1"></i>Send Test Email</button>
+        </form>
+        {% if sent %}
+        <div class="alert alert-success mt-3" style="font-size:.875rem;"><i class="bi bi-check-circle me-1"></i>Test email sent to <strong>{{ sent }}</strong>.</div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-header"><i class="bi bi-lightning me-2"></i>Email Automation Triggers</div>
+      <div class="card-body" style="font-size:.875rem;">
+        <ul class="mb-0">
+          <li><strong>On Internship Approval:</strong> Thank-you email sent to Organisation contact email.</li>
+          <li><strong>Recipients:</strong> Organisation / Advocate / Law Firm contact email.</li>
+          <li><strong>Content:</strong> Student name, programme, internship duration.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

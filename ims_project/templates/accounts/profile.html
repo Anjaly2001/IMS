@@ -3,7 +3,7 @@
 {% block page_title %}My Profile{% endblock %}
 {% block breadcrumb %}<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">My Profile</span>{% endblock %}
 {% block content %}
-<div class="row"><div class="col-lg-6">
+<div class="row g-3"><div class="col-lg-6">
 <div class="card">
   <div class="card-body">
     <div class="d-flex align-items-center gap-3 mb-3">
@@ -22,6 +22,12 @@
       <tr><td class="text-muted">Department</td><td>{{ user_obj.department|default:"—" }}</td></tr>
       {% if user_obj.employee_id %}<tr><td class="text-muted">Employee ID</td><td>{{ user_obj.employee_id }}</td></tr>{% endif %}
     </table>
+  </div>
+  <div class="card-footer bg-white d-flex gap-2 flex-wrap">
+    <a href="{% url 'password_change' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-lock me-1"></i>Change Password</a>
+    {% if user.is_system_admin %}
+    <a href="{% url 'email_settings' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-envelope-gear me-1"></i>Email Settings</a>
+    {% endif %}
   </div>
 </div>
 </div></div>

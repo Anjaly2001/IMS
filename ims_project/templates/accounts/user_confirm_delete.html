@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Delete User{% endblock %}
+{% block page_title %}Delete User{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-sep">/</span><a href="{% url 'user_list' %}" class="breadcrumb-link">User Management</a><span class="breadcrumb-sep">/</span><span class="breadcrumb-current">Delete</span>{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-5">
+<div class="card border-danger">
+  <div class="card-header text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</div>
+  <div class="card-body">
+    <p>Are you sure you want to permanently delete the user <strong>{{ user_obj.get_full_name|default:user_obj.username }}</strong> ({{ user_obj.username }})?</p>
+    <p class="text-muted" style="font-size:.875rem;">This action cannot be undone. All activity logs for this user will be preserved but the account will be removed.</p>
+    <form method="post" class="d-flex gap-2 mt-4">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Yes, Delete</button>
+      <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+</div></div>
+{% endblock %}

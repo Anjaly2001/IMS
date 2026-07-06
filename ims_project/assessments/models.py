@@ -139,3 +139,53 @@ class MarkEditHistory(models.Model):
 
     def __str__(self):
         return f"{self.marks} — {self.field_changed}: {self.old_value} → {self.new_value}"
+
+
+class IntermediateMark(models.Model):
+    """SRS 4.7 — Intermediate assessments before the final viva."""
+    TYPE_CHOICES = [
+        ('intermediate', 'Intermediate Assessment'),
+        ('report', 'Report Evaluation'),
+        ('presentation', 'Presentation / Review'),
+        ('mentor', 'Mentor Evaluation'),
+        ('attendance', 'Attendance'),
+        ('other', 'Other'),
+    ]
+    STATUS_CHOICES = [
+        ('draft', 'Draft'), ('submitted', 'Submitted'),
+        ('approved', 'Approved'), ('locked', 'Locked'),
+    ]
+    internship_record = models.ForeignKey(
+        'internships.InternshipRecord', on_delete=models.CASCADE, related_name='intermediate_marks'
+    )
+    assessment_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='intermediate')
+    assessment_name = models.CharField(max_length=100)
+    maximum_marks = models.DecimalField(max_digits=6, decimal_places=2)
+    marks_awarded = models.DecimalField(max_digits=6, decimal_places=2)
+    weightage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    assessment_date = models.DateField(null=True, blank=True)
+    evaluator = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name='intermediate_marks_entered')
+    remarks = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['assessment_date', 'id']
+
+    def __str__(self):
+        return f"{self.internship_record} — {self.assessment_name}: {self.marks_awarded}/{self.maximum_marks}"
+
+    @property
+    def percentage(self):
+        if self.maximum_marks and self.maximum_marks > 0:
+            return round(float(self.marks_awarded) / float(self.maximum_marks) * 100, 1)
+        return 0
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.marks_awarded is not None and self.maximum_marks is not None:
+            if self.marks_awarded > self.maximum_marks:
+                raise ValidationError({'marks_awarded': 'Marks cannot exceed maximum.'})
+            if self.marks_awarded < 0:
+                raise ValidationError({'marks_awarded': 'Marks cannot be negative.'})

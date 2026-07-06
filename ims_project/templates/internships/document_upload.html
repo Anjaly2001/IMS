@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Upload Document{% endblock %}
+{% block page_title %}Upload Document{% endblock %}
+{% block breadcrumb %}
+<span class="breadcrumb-sep">/</span>
+<a href="{% url 'internship_list' %}" class="breadcrumb-link">Internship Records</a>
+<span class="breadcrumb-sep">/</span>
+<a href="{% url 'internship_detail' record.pk %}" class="breadcrumb-link">{{ record.student.register_number }} — #{{ record.internship_number }}</a>
+<span class="breadcrumb-sep">/</span>
+<span class="breadcrumb-current">Upload Document</span>
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-file-earmark-arrow-up me-2"></i>Upload Supporting Document</div>
+      <div class="card-body">
+        <p class="text-muted" style="font-size:.85rem;">
+          Student: <strong>{{ record.student.name }}</strong> — Internship <strong>#{{ record.internship_number }}</strong> at <strong>{{ record.organisation.name }}</strong>
+        </p>
+        <form method="post" enctype="multipart/form-data">{% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger mt-1" style="font-size:.83rem;">{{ field.errors.0 }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-navy"><i class="bi bi-upload me-1"></i>Upload</button>
+            <a href="{% url 'internship_detail' record.pk %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Supported File Types</div>
+      <div class="card-body" style="font-size:.875rem;">
+        <ul class="mb-0">
+          <li><i class="bi bi-file-earmark-pdf text-danger me-1"></i><strong>PDF</strong> — Certificates, Reports, Letters</li>
+          <li><i class="bi bi-file-earmark-image text-primary me-1"></i><strong>JPG / PNG</strong> — Scanned documents, photos</li>
+          <li><i class="bi bi-file-earmark-word text-info me-1"></i><strong>DOC / DOCX</strong> — Word documents</li>
+        </ul>
+        <p class="text-muted mt-2 mb-0" style="font-size:.78rem;">Maximum file size: 10 MB per document.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -70,8 +70,7 @@ def internship_detail(request, pk):
         'record': record,
         'can_student_edit': is_owner and record.verification_status in ('draft', 'needs_correction'),
         'can_upload_documents': (
-            (is_owner or request.user.is_admin)
-            and record.verification_status in ('verified', 'marks_entered', 'approved')
+            (is_owner or not request.user.is_student_role)
             and record.verification_status != 'locked'
         ),
         'can_verify_internship': request.user.is_authenticated and (
@@ -85,7 +84,9 @@ def internship_detail(request, pk):
             and record.verification_status == 'verified'
             and getattr(record, 'marks', None).status == 'draft'
         ),
-        'can_review_marks': has_marks and request.user.is_admin,
+        'can_review_marks': has_marks and (request.user.is_admin or request.user.is_coordinator),
+        'intermediate_marks': record.intermediate_marks.all() if hasattr(record, 'intermediate_marks') else [],
+        'documents': record.documents.all() if hasattr(record, 'documents') else [],
     }
     return render(request, 'internships/internship_detail.html', context)
 
@@ -281,3 +282,45 @@ def mentor_assign(request, student_pk=None):
 def mentor_list(request):
     assignments = MentorAssignment.objects.select_related('student','faculty').order_by('-effective_from')
     return render(request, 'internships/mentor_list.html', {'assignments': assignments})
+
+
+# ── Document Upload & Verify ──────────────────────────────────────────────────
+@login_required
+def document_upload(request, internship_pk):
+    record = get_object_or_404(InternshipRecord, pk=internship_pk)
+    if request.user.is_student_role:
+        try:
+            if record.student != request.user.student_profile:
+                messages.error(request, 'Access denied.'); return redirect('dashboard')
+        except Exception:
+            return redirect('dashboard')
+    from .forms import InternshipDocumentForm
+    form = InternshipDocumentForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        doc = form.save(commit=False)
+        doc.internship_record = record
+        doc.uploaded_by = request.user
+        doc.save()
+        ActivityLog.objects.create(user=request.user, action=f'Uploaded {doc.get_document_type_display()}',
+                                   module='Documents', record_id=str(record.pk))
+        messages.success(request, 'Document uploaded successfully.')
+        return redirect('internship_detail', pk=internship_pk)
+    return render(request, 'internships/document_upload.html', {'form': form, 'record': record})
+
+
+@login_required
+@coordinator_required
+def document_verify(request, doc_pk):
+    from .models import InternshipDocument
+    from .forms import DocumentVerifyForm
+    doc = get_object_or_404(InternshipDocument, pk=doc_pk)
+    form = DocumentVerifyForm(request.POST or None, instance=doc)
+    if request.method == 'POST' and form.is_valid():
+        d = form.save(commit=False)
+        d.verified_by = request.user
+        from django.utils import timezone
+        d.verified_at = timezone.now()
+        d.save()
+        messages.success(request, f'Document {d.get_verification_status_display()}.')
+        return redirect('internship_detail', pk=doc.internship_record.pk)
+    return render(request, 'internships/document_verify.html', {'form': form, 'doc': doc})

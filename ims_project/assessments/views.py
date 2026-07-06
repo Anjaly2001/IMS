@@ -6,7 +6,7 @@ from .models import InternshipMarks, MarkEditHistory
 from .forms import InternshipMarksForm, MarksApprovalForm
 from .calculations import calculate_student_score
 from internships.models import InternshipRecord
-from accounts.decorators import admin_required, not_student
+from accounts.decorators import admin_required, not_student, coordinator_required
 from accounts.models import ActivityLog
 
 
@@ -73,7 +73,7 @@ def marks_entry(request, internship_pk):
 
 
 @login_required
-@admin_required
+@coordinator_required
 def marks_review(request, pk):
     """
     Department Admin review and lock step. Admins can correct submitted
@@ -257,3 +257,43 @@ def student_score_card_pdf(request, student_pk):
 
     doc.build(story)
     return response
+
+
+# ── Intermediate Marks ────────────────────────────────────────────────────────
+@login_required
+@not_student
+def intermediate_mark_add(request, internship_pk):
+    from .models import IntermediateMark
+    from .forms import IntermediateMarkForm
+    record = get_object_or_404(InternshipRecord, pk=internship_pk)
+    form = IntermediateMarkForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        m = form.save(commit=False)
+        m.internship_record = record
+        m.evaluator = request.user
+        m.status = 'submitted' if 'submit' in request.POST else 'draft'
+        m.save()
+        ActivityLog.objects.create(user=request.user, action=f'Added intermediate mark: {m.assessment_name}',
+                                   module='Assessments', record_id=str(record.pk))
+        messages.success(request, 'Intermediate mark saved.')
+        return redirect('internship_detail', pk=internship_pk)
+    return render(request, 'assessments/intermediate_mark_form.html', {
+        'form': form, 'record': record, 'title': 'Add Intermediate Mark'})
+
+
+@login_required
+@not_student
+def intermediate_mark_edit(request, pk):
+    from .models import IntermediateMark
+    from .forms import IntermediateMarkForm
+    mark = get_object_or_404(IntermediateMark, pk=pk)
+    if mark.status == 'locked' and not request.user.is_coordinator:
+        messages.error(request, 'These marks are locked.')
+        return redirect('internship_detail', pk=mark.internship_record.pk)
+    form = IntermediateMarkForm(request.POST or None, instance=mark)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Intermediate mark updated.')
+        return redirect('internship_detail', pk=mark.internship_record.pk)
+    return render(request, 'assessments/intermediate_mark_form.html', {
+        'form': form, 'record': mark.internship_record, 'mark': mark, 'title': 'Edit Intermediate Mark'})

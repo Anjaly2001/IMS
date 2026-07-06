@@ -25,3 +25,21 @@ class UserEditForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
+
+
+class PasswordChangeCustomForm(forms.Form):
+    current_password = forms.CharField(label='Current Password', widget=forms.PasswordInput(attrs={'class':'form-control'}))
+    new_password = forms.CharField(label='New Password', widget=forms.PasswordInput(attrs={'class':'form-control'}))
+    confirm_password = forms.CharField(label='Confirm New Password', widget=forms.PasswordInput(attrs={'class':'form-control'}))
+
+    def clean_new_password(self):
+        p = self.cleaned_data.get('new_password','')
+        if len(p) < 8:
+            raise forms.ValidationError('Password must be at least 8 characters.')
+        return p
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('new_password') != cleaned.get('confirm_password'):
+            self.add_error('confirm_password', 'Passwords do not match.')
+        return cleaned

@@ -193,3 +193,38 @@ class VerificationForm(forms.ModelForm):
         ]
         for f in self.fields.values():
             f.widget.attrs['class'] = 'form-control'
+
+
+class InternshipDocumentForm(forms.ModelForm):
+    class Meta:
+        from .models import InternshipDocument
+        model = InternshipDocument
+        fields = ['document_type','file','description']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in self.fields.values():
+            f.widget.attrs['class'] = 'form-control'
+
+    def clean_file(self):
+        f = self.cleaned_data.get('file')
+        if f:
+            import os
+            ext = os.path.splitext(f.name)[1].lower()
+            if ext not in ['.pdf','.jpg','.jpeg','.png','.doc','.docx']:
+                raise forms.ValidationError('Allowed: PDF, JPG, PNG, DOC, DOCX.')
+            if f.size > 10*1024*1024:
+                raise forms.ValidationError('File must be under 10 MB.')
+        return f
+
+
+class DocumentVerifyForm(forms.ModelForm):
+    class Meta:
+        from .models import InternshipDocument
+        model = InternshipDocument
+        fields = ['verification_status','remarks']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in self.fields.values():
+            f.widget.attrs['class'] = 'form-control'

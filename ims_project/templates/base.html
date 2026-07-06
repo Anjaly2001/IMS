@@ -159,10 +159,13 @@
     {% if user.is_system_admin %}
     <div class="nav-section">Administration</div>
     <div class="nav-item">
-      <a href="{% url 'user_list' %}"><i class="bi bi-shield-person"></i> User Management</a>
+      <a href="{% url 'user_list' %}" class="{% if 'user' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-shield-person"></i> User Management</a>
     </div>
     <div class="nav-item">
       <a href="{% url 'activity_log' %}"><i class="bi bi-clock-history"></i> Activity Log</a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'email_settings' %}" class="{% if request.resolver_match.url_name == 'email_settings' %}active{% endif %}"><i class="bi bi-envelope-gear"></i> Email Settings</a>
     </div>
     {% endif %}
     {% else %}
@@ -173,10 +176,23 @@
       </a>
     </div>
     <div class="nav-item">
-      {% if user.student_profile %}
-      <a href="{% url 'student_detail' user.student_profile.pk %}"><i class="bi bi-person-lines-fill"></i> My Profile</a>
-      {% endif %}
+      <a href="{% url 'internship_list' %}" class="{% if request.resolver_match.url_name == 'internship_list' %}active{% endif %}">
+        <i class="bi bi-briefcase"></i> My Internships
+      </a>
     </div>
+    {% if user.student_profile %}
+    <div class="nav-item">
+      <a href="{% url 'student_detail' user.student_profile.pk %}" class="{% if request.resolver_match.url_name == 'student_detail' %}active{% endif %}">
+        <i class="bi bi-person-lines-fill"></i> My Profile
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="{% url 'marks_summary' user.student_profile.pk %}" class="{% if 'marks_summary' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-clipboard-data"></i> My Marks
+      </a>
+    </div>
+    {% endif %}
+    <div class="nav-section">Support</div>
     <div class="nav-item">
       <a href="{% url 'notifications' %}" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
         <i class="bi bi-bell"></i> Notifications
@@ -192,6 +208,9 @@
     <div class="mt-2 d-flex gap-2">
       <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-light btn-outline-opacity flex-1" style="font-size:.75rem;">
         <i class="bi bi-person"></i> Profile
+      </a>
+      <a href="{% url 'password_change' %}" class="btn btn-sm btn-outline-light flex-1" style="font-size:.75rem;">
+        <i class="bi bi-lock"></i> Password
       </a>
       <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-light flex-1" style="font-size:.75rem;">
         <i class="bi bi-box-arrow-right"></i> Logout
