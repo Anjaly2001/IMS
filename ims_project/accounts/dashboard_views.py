@@ -10,6 +10,15 @@ from assessments.models import InternshipMarks
 
 @login_required
 def dashboard(request):
+    """
+    Renders the role-based dashboard index page.
+    Queries the database and populates context variables matching the user's login role:
+      - system_admin/dept_admin: Full administrator KPIs and charts metrics.
+      - faculty_mentor: Assigned student count, pending verification, and pending approvals.
+      - evaluator: Pending marks assignments count, evaluator history.
+      - HOD: Overall internship progress indicators, pending actions count.
+      - student: Detailed overview of personal current internships, mentor details, and document upload status.
+    """
     user = request.user
     context = {}
 

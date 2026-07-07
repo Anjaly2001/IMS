@@ -135,6 +135,11 @@ def marks_review(request, pk):
 @login_required
 @not_student
 def marks_summary(request, student_pk):
+    """
+    Renders a comprehensive marks breakdown page for a student showing all 8 regular 
+    internships and highlights which 7 of the 8 scores actually counted towards the 
+    average regular marks component.
+    """
     from students.models import Student
     student = get_object_or_404(Student, pk=student_pk)
     result = calculate_student_score(student)
@@ -166,7 +171,10 @@ def marks_summary(request, student_pk):
 @login_required
 @not_student
 def student_score_card(request, student_pk):
-    """Printable/consolidated final score card for a student."""
+    """
+    Renders the printable and consolidated final Year Score Card page, showing 
+    details of the 5-step conversion and the final cumulative marks out of 100.
+    """
     from students.models import Student
     student = get_object_or_404(Student, pk=student_pk)
     result = calculate_student_score(student)
@@ -178,7 +186,10 @@ def student_score_card(request, student_pk):
 @login_required
 @not_student
 def student_score_card_pdf(request, student_pk):
-    """PDF export of the score card, per SRS Reports Module (Excel/PDF export)."""
+    """
+    Generates a dynamically compiled PDF using Reportlab of the student's 
+    consolidated final Year Score Card. Downloadable as an attachment.
+    """
     from django.http import HttpResponse
     from students.models import Student
     from reportlab.lib.pagesizes import A4
@@ -263,6 +274,9 @@ def student_score_card_pdf(request, student_pk):
 @login_required
 @not_student
 def intermediate_mark_add(request, internship_pk):
+    """
+    Renders form letting Evaluators record intermediate assessment marks (draft/submitted).
+    """
     from .models import IntermediateMark
     from .forms import IntermediateMarkForm
     record = get_object_or_404(InternshipRecord, pk=internship_pk)
@@ -284,6 +298,9 @@ def intermediate_mark_add(request, internship_pk):
 @login_required
 @not_student
 def intermediate_mark_edit(request, pk):
+    """
+    View to edit an intermediate marks row. Locked records can only be edited by Coordinators.
+    """
     from .models import IntermediateMark
     from .forms import IntermediateMarkForm
     mark = get_object_or_404(IntermediateMark, pk=pk)

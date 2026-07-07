@@ -4,6 +4,11 @@ from organisations.models import Organisation
 from accounts.models import User
 
 class InternshipRecord(models.Model):
+    """
+    Main entity tracking an active or completed internship placement.
+    Stores placement features including host organization, reporting officer,
+    start/end dates, mode, stipend financial details, status timeline, and certificate attachments.
+    """
     TYPE_CHOICES = [
         ('regular', 'Regular Internship'),
         ('assessment', 'Assessment Internship'),
@@ -71,15 +76,20 @@ class InternshipRecord(models.Model):
 
     @property
     def duration_days(self):
+        """
+        Calculates the length of the internship in days.
+        """
         if self.start_date and self.end_date:
             return (self.end_date - self.start_date).days
         return 0
 
     @property
     def approval_timeline(self):
-        """Maps the internal verification_status onto the simple 3-stage
+        """
+        Maps the internal verification_status onto the simple 3-stage
         timeline shown on the Internship Detail page: Submitted -> Verified
-        -> Approved (per SRS)."""
+        -> Approved (per SRS).
+        """
         order = ['draft', 'submitted', 'needs_correction', 'verified',
                   'marks_entered', 'approved', 'locked', 'rejected']
         reached_submitted = self.verification_status in (
@@ -96,6 +106,10 @@ class InternshipRecord(models.Model):
         }
 
 class MentorAssignment(models.Model):
+    """
+    Tracks assignments of Faculty Mentors to Students over time.
+    Enables handling mid-semester mentor changes with clear effective_from/to ranges.
+    """
     LEVEL_CHOICES = [
         ('programme', 'Programme'),
         ('batch', 'Batch'),
@@ -122,6 +136,9 @@ class MentorAssignment(models.Model):
 
     @property
     def is_active(self):
+        """
+        Determines if this mentor assignment is active based on the current date range.
+        """
         from django.utils import timezone
         today = timezone.now().date()
         if self.effective_to:
@@ -130,7 +147,11 @@ class MentorAssignment(models.Model):
 
 
 class InternshipDocument(models.Model):
-    """SRS 4.9 — Multi-type document store per internship."""
+    """
+    SRS 4.9 — Multi-type document store per internship.
+    Maintains student uploads like certificates, reports, confirmations, etc.,
+    and records their verification status.
+    """
     DOC_TYPE_CHOICES = [
         ('certificate', 'Internship Certificate'),
         ('report', 'Internship Report'),
@@ -165,5 +186,8 @@ class InternshipDocument(models.Model):
 
     @property
     def filename(self):
+        """
+        Extracts the simple basename of the uploaded file.
+        """
         import os
         return os.path.basename(self.file.name)

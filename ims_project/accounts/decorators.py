@@ -3,7 +3,10 @@ from django.shortcuts import redirect
 from django.contrib import messages
 
 def admin_required(view_func):
-    """System Admin, Department Admin, or Django superuser only."""
+    """
+    Decorator for views that restrict access to System Admins, Department Admins, or Django superusers.
+    Redirects non-authorized users to the dashboard with an error message.
+    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_admin:
@@ -13,8 +16,10 @@ def admin_required(view_func):
     return wrapper
 
 def system_admin_required(view_func):
-    """System Admin / superuser only — stricter than admin_required
-    (excludes Department Admin). Used for system-wide settings."""
+    """
+    Decorator for views that strictly restrict access to System Admins or Django superusers.
+    Excludes Department Admins. Used primarily for user administration operations.
+    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_system_admin:
@@ -24,7 +29,10 @@ def system_admin_required(view_func):
     return wrapper
 
 def faculty_required(view_func):
-    """Admins, faculty mentors, evaluators, HoD — or a superuser."""
+    """
+    Decorator that allows access only to System Admins, Department Admins, Faculty Mentors,
+    Evaluators, HoDs, or Django superusers.
+    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         u = request.user
@@ -35,9 +43,12 @@ def faculty_required(view_func):
     return wrapper
 
 def coordinator_required(view_func):
-    """Faculty Coordinator (or admin/HoD) only — for verify, approve, lock,
-    and edit-marks-after-submission actions per the SRS. Evaluators and
-    Students are blocked even though they may otherwise be 'faculty'."""
+    """
+    Decorator enforcing Faculty Coordinator access requirements per the SRS.
+    Only Faculty Coordinators (assigned Mentor role, plus Admins and HoDs) can verify records,
+    edit marks, approve & lock records, and trigger automation emails.
+    Standard Evaluators and Students are denied access.
+    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_coordinator:
@@ -47,8 +58,10 @@ def coordinator_required(view_func):
     return wrapper
 
 def not_student(view_func):
-    """Everyone except genuine students. A superuser always passes,
-    even if their role field happens to be 'student'."""
+    """
+    Decorator blocking access to genuine Student users.
+    Allows access for all roles except standard students (a superuser always passes).
+    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if request.user.is_authenticated and not request.user.is_student_role:

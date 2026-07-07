@@ -28,8 +28,16 @@ ASSESSMENT_MAX = 30         # assessment internship is scored out of 30 directly
 
 
 def get_total_marks(internship_record):
-    """Return the auto-calculated total (float) for an internship's marks
-    row, or None if marks haven't been (fully) entered yet."""
+    """
+    Retrieves the final calculated total marks for a specific InternshipRecord.
+
+    Args:
+        internship_record (InternshipRecord): The record to examine.
+
+    Returns:
+        float: Auto-calculated total from the related InternshipMarks instance,
+               or None if marks are not yet populated.
+    """
     try:
         marks = internship_record.marks
     except InternshipMarks.DoesNotExist:
@@ -39,21 +47,22 @@ def get_total_marks(internship_record):
 
 def calculate_student_score(student):
     """
-    Compute the full Final Year Calculation breakdown for a student,
-    following the SRS's 5-step engine exactly.
+    Consolidates internship marks and executes the Best-7-of-8 calculation process.
 
-    Returns a dict:
-        regular_marks: list of {internship, number, mark} for all 8 regular internships
-        best7: list of the best 7 raw marks (out of 100 each) actually used
-        best7_total: sum of the best 7 raw marks
-        regular_avg: Best 7 Total / 7 (Step 3) — out of 100
-        regular_converted: Average x 70 / 100 (Step 4) — out of 70
-        regular_count: how many regular internships have completed marks
-        assessment_mark: float (out of 30) or None (Step 5 input)
-        assessment_internship: the InternshipRecord or None
-        final_score: Regular Component (70) + Assessment (30) — out of 100
-        is_provisional: True if the assessment internship mark is missing
-        complete: True if all 8 regular internships + assessment internship are fully marked
+    Processing Steps:
+      1. Fetch all completed 'regular' internship records for the student.
+      2. Sum and sort the scores, keeping only the best 7 of the 8 scores (ignores lowest).
+      3. Compute average mark over the available best scores (up to 7).
+      4. Convert the average out of 100 to a 70-mark scale (Average * 0.7).
+      5. Read the 5th-year 'assessment' internship score (up to 30 marks).
+      6. Combine the converted regular score (out of 70) and assessment score (out of 30) for a total out of 100.
+
+    Args:
+        student (Student): Target student profile instance.
+
+    Returns:
+        dict: Dict containing marks list, best7 list, average, regular component total,
+              assessment score, final sum, completeness flag, and provisional flag status.
     """
     regular_qs = InternshipRecord.objects.filter(
         student=student, internship_type='regular'

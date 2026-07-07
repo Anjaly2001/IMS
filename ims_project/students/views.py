@@ -10,6 +10,10 @@ from accounts.models import ActivityLog
 @login_required
 @not_student
 def student_list(request):
+    """
+    Renders a filterable datagrid of students registered in the system.
+    Supports querying by search query, enrollment status, programme, and batch.
+    """
     q = request.GET.get('q','')
     status = request.GET.get('status','')
     programme_id = request.GET.get('programme','')
@@ -31,8 +35,14 @@ def student_list(request):
         'statuses': Student.STATUS_CHOICES,
     })
 
+
 @login_required
 def student_detail(request, pk):
+    """
+    Shows the comprehensive profile of a specific Student.
+    Includes active mentor assignments, registered internship records, break history,
+    and average viva performance dashboard metrics.
+    """
     if request.user.is_student_role:
         try:
             student = request.user.student_profile
@@ -56,9 +66,14 @@ def student_detail(request, pk):
         'breaks': breaks, 'mentors': mentors, 'viva_avg': viva_avg,
     })
 
+
 @login_required
 @admin_required
 def student_create(request):
+    """
+    Renders and processes student generation form.
+    Restricted to system admins; creates user account relation if applicable.
+    """
     form = StudentForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         student = form.save()
@@ -67,9 +82,13 @@ def student_create(request):
         return redirect('student_list')
     return render(request, 'students/student_form.html', {'form': form, 'title': 'Add Student'})
 
+
 @login_required
 @admin_required
 def student_edit(request, pk):
+    """
+    Renders and saves modifications to a student's basic details.
+    """
     student = get_object_or_404(Student, pk=pk)
     form = StudentForm(request.POST or None, instance=student)
     if request.method == 'POST' and form.is_valid():
@@ -78,9 +97,14 @@ def student_edit(request, pk):
         return redirect('student_list')
     return render(request, 'students/student_form.html', {'form': form, 'title': f'Edit: {student.name}', 'student': student})
 
+
 @login_required
 @not_student
 def break_create(request, student_pk):
+    """
+    Enters a leave or timeline break record for a student.
+    Handles uploading supporting verification files and reason outlines.
+    """
     student = get_object_or_404(Student, pk=student_pk)
     form = BreakRecordForm(request.POST or None, request.FILES or None, student=student)
     if request.method == 'POST' and form.is_valid():
@@ -91,15 +115,23 @@ def break_create(request, student_pk):
         return redirect('student_detail', pk=student_pk)
     return render(request, 'students/break_form.html', {'form': form, 'student': student})
 
+
 @login_required
 @not_student
 def programme_list(request):
+    """
+    Lists degree Programs configured in the IMS.
+    """
     programmes = Programme.objects.all()
     return render(request, 'students/programme_list.html', {'programmes': programmes})
+
 
 @login_required
 @admin_required
 def programme_create(request):
+    """
+    Registers a new degree Program (e.g. LL.B.) including expected cycle counts.
+    """
     form = ProgrammeForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -107,15 +139,23 @@ def programme_create(request):
         return redirect('programme_list')
     return render(request, 'students/programme_form.html', {'form': form, 'title': 'Add Programme'})
 
+
 @login_required
 @not_student
 def batch_list(request):
+    """
+    Lists student Cohort/Batch years.
+    """
     batches = Batch.objects.select_related('programme').all()
     return render(request, 'students/batch_list.html', {'batches': batches})
+
 
 @login_required
 @admin_required
 def batch_create(request):
+    """
+    Creates a student Cohort/Batch linked to a specific Program.
+    """
     form = BatchForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()

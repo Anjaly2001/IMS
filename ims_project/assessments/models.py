@@ -126,6 +126,10 @@ class InternshipMarks(models.Model):
 
 
 class MarkEditHistory(models.Model):
+    """
+    Model designed to audit changes made to InternshipMarks.
+    Tracks who edited, which field was modified, and the value progression (old vs new value).
+    """
     marks = models.ForeignKey(InternshipMarks, on_delete=models.CASCADE, related_name='edit_history')
     edited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     field_changed = models.CharField(max_length=30)
@@ -142,7 +146,11 @@ class MarkEditHistory(models.Model):
 
 
 class IntermediateMark(models.Model):
-    """SRS 4.7 — Intermediate assessments before the final viva."""
+    """
+    SRS 4.7 — Tracks intermediate marks/assessments achieved by the student 
+    during their internship timeline (e.g. presentation reviews, report drafts).
+    Provides additional performance diagnostics before the final evaluation viva.
+    """
     TYPE_CHOICES = [
         ('intermediate', 'Intermediate Assessment'),
         ('report', 'Report Evaluation'),
@@ -178,6 +186,9 @@ class IntermediateMark(models.Model):
 
     @property
     def percentage(self):
+        """
+        Calculates percentage achieved in the intermediate assessment.
+        """
         if self.maximum_marks and self.maximum_marks > 0:
             return round(float(self.marks_awarded) / float(self.maximum_marks) * 100, 1)
         return 0

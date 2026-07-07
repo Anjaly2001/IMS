@@ -2,6 +2,17 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
+    """
+    Custom User model extending Django's AbstractUser to implement Role-Based Access Control (RBAC).
+
+    Roles:
+      - system_admin: Full system configuration and user management rights.
+      - dept_admin: Full access to students/internships/marks/reports (no user profiles admin).
+      - faculty_mentor: Tracks assigned student records, acts as a Faculty Coordinator to verify, edit, and approve marks/records.
+      - evaluator: Standard faculty allowed to score marks, but cannot edit after submitting.
+      - hod: Department Head, signs off on academic validations, creates permissions.
+      - student: Standard student looking at their own profile and records.
+    """
     ROLE_CHOICES = [
         ('system_admin', 'System Admin'),
         ('dept_admin', 'Department Admin'),
@@ -16,6 +27,10 @@ class User(AbstractUser):
     employee_id = models.CharField(max_length=30, blank=True)
 
     def save(self, *args, **kwargs):
+        """
+        Overrides save behavior to ensure superusers always auto-align
+        with the 'system_admin' role, preventing locking out of admin pages.
+        """
         # A Django superuser (createsuperuser / is_superuser=True) always
         # counts as System Admin in the IMS role system, no matter what the
         # role field says — this guarantees superusers never get locked out
@@ -29,55 +44,76 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        """System Admin or Department Admin — or any Django superuser."""
+        """
+        Checks if user is System Admin, Department Admin, or superuser.
+        Granting access to administrative functions.
+        """
         return self.is_superuser or self.role in ('system_admin', 'dept_admin')
 
     @property
     def is_system_admin(self):
-        """Full, unrestricted access — System Admin role or Django superuser."""
+        """
+        Checks if user has strict System Administrator permissions or is a Django superuser.
+        """
         return self.is_superuser or self.role == 'system_admin'
 
     @property
     def is_faculty(self):
+        """
+        Checks if user belongs to faculty roles (Mentor or Evaluator).
+        """
         return self.role in ('faculty_mentor', 'evaluator')
 
     @property
     def is_hod(self):
+        """
+        Checks if user has Head of Department role.
+        """
         return self.role == 'hod'
 
     @property
     def is_coordinator(self):
-        """Faculty Coordinator duties (per SRS): verify/edit internship
-        records, edit marks, approve & lock records, generate reports,
-        send notifications. Mapped onto the existing 'faculty_mentor' role,
-        plus admins/HoD who can always act as coordinators."""
+        """
+        Checks if user can act as a Faculty Coordinator.
+        Coordinators can verify and edit internship records, edit marks,
+        approve & lock records, and trigger thank-you emails.
+        System Admins, HoDs, and Mentor roles all qualify as coordinators.
+        """
         return self.is_admin or self.is_hod or self.role == 'faculty_mentor'
 
     @property
     def is_evaluator_role(self):
-        """Faculty Evaluator duties (per SRS): enter viva/worksheet marks,
-        upload evaluation — cannot edit after submission."""
+        """
+        Checks if the user has evaluator-specific duties (marking sheets).
+        """
         return self.role == 'evaluator'
 
     @property
     def can_approve_records(self):
-        """Only Coordinators (and admins/HoD) can verify, approve, and lock
-        internship records and marks — Evaluators and Students cannot."""
+        """
+        Checks authorization to verify and approve internship items.
+        """
         return self.is_coordinator
 
     @property
     def can_edit_marks_after_submission(self):
-        """Evaluators lose edit rights once marks are submitted; only a
-        Coordinator (or admin/HoD) can edit marks after that point."""
+        """
+        Determines if user can override evaluator marks after submission.
+        """
         return self.is_coordinator
 
     @property
     def is_student_role(self):
-        """True only for genuine students — never true for a superuser,
-        even if role happens to say 'student'."""
+        """
+        Checks if the user is a genuine student user.
+        """
         return self.role == 'student' and not self.is_superuser
 
 class ActivityLog(models.Model):
+    """
+    Audit log system tracking modifications, logins, logouts, approvals,
+    locks, and automated email operations.
+    """
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     action = models.CharField(max_length=255)
     module = models.CharField(max_length=100)

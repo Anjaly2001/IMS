@@ -8,6 +8,11 @@ from .forms import LoginForm, UserCreateForm, UserEditForm
 from .decorators import admin_required, system_admin_required
 
 def _client_ip(request):
+    """
+    Retrieves the client's IP address from incoming request headers,
+    handling reverse proxy setups (HTTP_X_FORWARDED_FOR) and falling back
+    to standard remote address.
+    """
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if forwarded:
         return forwarded.split(',')[0].strip()
@@ -15,6 +20,10 @@ def _client_ip(request):
 
 
 def login_view(request):
+    """
+    Authenticates and logs in a User. Saves User login event to Audit/ActivityLog.
+    Redirects to the dashboard on successful login.
+    """
     if request.user.is_authenticated:
         return redirect('dashboard')
     form = LoginForm(data=request.POST or None)
@@ -31,6 +40,9 @@ def login_view(request):
 
 @login_required
 def logout_view(request):
+    """
+    Logs out the currently active User, registers the logout action in ActivityLog, Keep state clean.
+    """
     ActivityLog.objects.create(
         user=request.user, action='User logout', module='Authentication',
         ip_address=_client_ip(request),
@@ -42,6 +54,10 @@ def logout_view(request):
 @login_required
 @system_admin_required
 def user_list(request):
+    """
+    Renders filterable list of all user profiles in the system.
+    Only system administrators can query profiles by search and filter by role.
+    """
     q = request.GET.get('q','')
     role = request.GET.get('role','')
     users = User.objects.all()
@@ -54,6 +70,10 @@ def user_list(request):
 @login_required
 @system_admin_required
 def user_create(request):
+    """
+    Permits system administrators to create new users in the database (staff accounts/mentors, etc.).
+    Logs metadata creation in the ActivityLog.
+    """
     form = UserCreateForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
@@ -65,6 +85,9 @@ def user_create(request):
 @login_required
 @system_admin_required
 def user_edit(request, pk):
+    """
+    Displays form allowing system administrator to modify user roles and data.
+    """
     user = get_object_or_404(User, pk=pk)
     form = UserEditForm(request.POST or None, instance=user)
     if request.method == 'POST' and form.is_valid():
@@ -75,17 +98,26 @@ def user_edit(request, pk):
 
 @login_required
 def activity_log(request):
+    """
+    Displays the list of system activity logs for audit trails.
+    """
     logs = ActivityLog.objects.select_related('user').all()[:200]
     return render(request, 'accounts/activity_log.html', {'logs': logs})
 
 @login_required
 def profile_view(request):
+    """
+    Displays personal information dashboard for the active user.
+    """
     return render(request, 'accounts/profile.html', {'user_obj': request.user})
 
 
 # ── Password Change ───────────────────────────────────────────────────────────
 @login_required
 def password_change_view(request):
+    """
+    Handles user password changes. Verifies current password and updates session hash to maintain session integrity.
+    """
     from .forms import PasswordChangeCustomForm
     form = PasswordChangeCustomForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -106,6 +138,9 @@ def password_change_view(request):
 @login_required
 @system_admin_required
 def user_delete(request, pk):
+    """
+    Handles account removal requests. Prevents self-destruction action.
+    """
     user = get_object_or_404(User, pk=pk)
     if user == request.user:
         messages.error(request, 'You cannot delete your own account.')
@@ -122,6 +157,9 @@ def user_delete(request, pk):
 @login_required
 @system_admin_required
 def user_toggle_active(request, pk):
+    """
+    Toggles is_active status of a given user. Restricts self-modification.
+    """
     user = get_object_or_404(User, pk=pk)
     if user == request.user:
         messages.error(request, 'You cannot deactivate your own account.')
@@ -138,6 +176,10 @@ def user_toggle_active(request, pk):
 @login_required
 @system_admin_required
 def email_settings_view(request):
+    """
+    Displays current SMTP configurations read from project settings.
+    Permits sending test emails to substantiate connection settings.
+    """
     from django.conf import settings as dj_settings
     config = {
         'smtp_active': getattr(dj_settings, 'USE_SMTP_EMAIL', False),

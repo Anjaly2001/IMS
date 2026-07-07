@@ -2,6 +2,11 @@ from django.db import models
 from accounts.models import User
 
 class Programme(models.Model):
+    """
+    Represents an academic degree program (e.g. B.A. LL.B., B.B.A. LL.B.).
+    Configures structural properties like degree duration, required internship count (e.g. 8),
+    and whether a 5th-year assessment internship is mandatory.
+    """
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20, unique=True)
     duration_years = models.PositiveSmallIntegerField(default=5)
@@ -13,6 +18,10 @@ class Programme(models.Model):
         return f"{self.name} ({self.code})"
 
 class Batch(models.Model):
+    """
+    Represents a specific cohort of students enrolled under a Programme
+    with definite start and end academic years.
+    """
     programme = models.ForeignKey(Programme, on_delete=models.CASCADE, related_name='batches')
     name = models.CharField(max_length=50)
     start_year = models.PositiveIntegerField()
@@ -27,6 +36,11 @@ class Batch(models.Model):
         return f"{self.programme.code} - {self.name}"
 
 class Student(models.Model):
+    """
+    Tracks a student's profile inside the IMS.
+    Links the user account to academic features (Programme, Batch, timeline)
+    and acts as the parent anchor for internship records and evaluations.
+    """
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('completed', 'Completed'),
@@ -54,6 +68,10 @@ class Student(models.Model):
         return f"{self.register_number} - {self.name}"
 
 class BreakRecord(models.Model):
+    """
+    SRS 4.3 — Records academic breaks or leaves taken by the student.
+    Tracks the type, duration, approval source, and any impact on their internship timeline.
+    """
     BREAK_TYPE_CHOICES = [
         ('academic', 'Academic Break'),
         ('internship', 'Internship Break'),

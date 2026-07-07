@@ -18,6 +18,10 @@ from accounts.models import ActivityLog
 @login_required
 @not_student
 def internship_list(request):
+    """
+    Renders filterable list of all internship records.
+    Faculty coordinators observe records from their assigned students.
+    """
     q = request.GET.get('q','')
     status = request.GET.get('status','')
     vtype = request.GET.get('type','')
@@ -40,6 +44,10 @@ def internship_list(request):
 
 @login_required
 def internship_detail(request, pk):
+    """
+    Displays the detailed view of a single InternshipRecord.
+    Contains conditions to determine if the active user can edit, verify, enter marks, or upload documents.
+    """
     record = get_object_or_404(
         InternshipRecord.objects.select_related('student', 'organisation', 'verified_by'),
         pk=pk
@@ -92,6 +100,11 @@ def internship_detail(request, pk):
 
 @login_required
 def internship_create(request):
+    """
+    Handles registering new internship records.
+    Tracks whether a request comes from a student or backoffice admin,
+    processing 'draft' saves vs 'submitted' actions.
+    """
     if request.user.is_student_role:
         try:
             student = request.user.student_profile
@@ -150,6 +163,11 @@ def internship_create(request):
 
 @login_required
 def internship_edit(request, pk):
+    """
+    Handles modifications to an existing internship record.
+    Students can edit only if the record is a draft or flagged 'needs_correction'.
+    Staff must be Faculty Coordinators to modify non-draft records.
+    """
     record = get_object_or_404(InternshipRecord, pk=pk)
     if record.verification_status == 'locked':
         messages.error(request, 'This record is locked and cannot be edited.')
@@ -198,6 +216,11 @@ def internship_edit(request, pk):
 @login_required
 @coordinator_required
 def internship_verify(request, pk):
+    """
+    Renders verification and approval form.
+    Upon transition into the 'approved' status, automatically triggers the
+    host organization thank-you email automation.
+    """
     if not (request.user.is_admin or request.user.role == 'faculty_mentor'):
         messages.error(request, 'Only a Faculty Mentor or Admin can verify internship submissions.')
         return redirect('internship_detail', pk=pk)
@@ -228,6 +251,9 @@ def internship_verify(request, pk):
 
 @login_required
 def internship_upload_documents(request, pk):
+    """
+    Saves student certificates and reports loaded for a verified internship.
+    """
     record = get_object_or_404(InternshipRecord, pk=pk)
     if request.user.is_student_role:
         try:
@@ -264,6 +290,10 @@ def internship_upload_documents(request, pk):
 @login_required
 @not_student
 def mentor_assign(request, student_pk=None):
+    """
+    Assigns a Faculty Mentor/Coordinator to a specific Student.
+    Saves details representing a specific timeline window.
+    """
     student = None
     if student_pk:
         student = get_object_or_404(Student, pk=student_pk)
@@ -280,6 +310,9 @@ def mentor_assign(request, student_pk=None):
 @login_required
 @not_student
 def mentor_list(request):
+    """
+    Renders historical timeline log of all mentor-student assignments.
+    """
     assignments = MentorAssignment.objects.select_related('student','faculty').order_by('-effective_from')
     return render(request, 'internships/mentor_list.html', {'assignments': assignments})
 
@@ -287,6 +320,9 @@ def mentor_list(request):
 # ── Document Upload & Verify ──────────────────────────────────────────────────
 @login_required
 def document_upload(request, internship_pk):
+    """
+    Lets a Student or admin upload multi-type documents (e.g. Break approvals).
+    """
     record = get_object_or_404(InternshipRecord, pk=internship_pk)
     if request.user.is_student_role:
         try:
@@ -311,6 +347,9 @@ def document_upload(request, internship_pk):
 @login_required
 @coordinator_required
 def document_verify(request, doc_pk):
+    """
+    Coordinator decision view to verify or reject individual uploaded internship documents.
+    """
     from .models import InternshipDocument
     from .forms import DocumentVerifyForm
     doc = get_object_or_404(InternshipDocument, pk=doc_pk)
